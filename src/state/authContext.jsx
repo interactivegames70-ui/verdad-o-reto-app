@@ -93,7 +93,8 @@ export function AuthProvider({ children }) {
   }
 
   async function signInAsGuest() {
-    await supabase.auth.signInAnonymously()
+    const { error } = await supabase.auth.signInAnonymously()
+    if (error) alert('ERROR: ' + error.message)
   }
 
   async function signOut() {
