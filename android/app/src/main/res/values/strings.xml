@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Verdad o Reto</string>
+    <string name="title_activity_main">Verdad o Reto</string>
+    <string name="package_name">com.verdadoreto.app</string>
+    <string name="custom_url_scheme">com.verdadoreto.app</string>
+</resources>

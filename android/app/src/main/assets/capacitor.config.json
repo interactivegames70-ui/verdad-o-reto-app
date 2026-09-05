@@ -1,0 +1,8 @@
+{
+	"appId": "com.verdadoreto.app",
+	"appName": "Verdad o Reto",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	}
+}
