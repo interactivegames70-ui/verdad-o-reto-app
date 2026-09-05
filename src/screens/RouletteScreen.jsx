@@ -4,9 +4,10 @@ import Confetti from '../components/Confetti'
 import { playTick, playLand } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
 
-const ROW_HEIGHT = 64
-const VISIBLE_ROWS = 5
-const LAPS = 22 // cuántas vueltas completas de todos los jugadores hace el carrete antes de frenar
+const ROW_HEIGHT = 78
+const VISIBLE_ROWS = 7
+const LAPS = 20 // cuántas vueltas completas de todos los jugadores hace el carrete antes de frenar
+const TILT_DEG = 11 // inclinación de la cascada de nombres (el ganador se endereza)
 
 function shuffle(arr) {
   const a = [...arr]
@@ -92,7 +93,7 @@ export default function RouletteScreen() {
   }
 
   return (
-    <div className="screen" style={{ alignItems: 'center', textAlign: 'center', justifyContent: 'center', gap: 28 }}>
+    <div className="screen" style={{ alignItems: 'center', textAlign: 'center', justifyContent: 'center', gap: 24 }}>
       <div>
         <span className="progress-pill">
           Turno {state.turnIndex + 1} de {state.totalTurns}
@@ -106,81 +107,59 @@ export default function RouletteScreen() {
       {justLanded && <Confetti count={50} />}
 
       <div
-        className="roulette-reel-wrap"
+        className="reel-viewport"
         style={{
-          position: 'relative',
-          width: 'min(320px, 88vw)',
+          width: '100%',
           height: ROW_HEIGHT * VISIBLE_ROWS,
-          overflow: 'hidden',
-          borderRadius: 24,
-          background: 'var(--surface-card)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          maskImage: 'linear-gradient(transparent, black 18%, black 82%, transparent)',
+          WebkitMaskImage: 'linear-gradient(transparent, black 18%, black 82%, transparent)',
         }}
       >
-        {/* franja central fija, como puntero: aquí siempre se lee el resultado */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: halfVisible * ROW_HEIGHT,
-            left: 0,
-            right: 0,
-            height: ROW_HEIGHT,
-            background: 'rgba(255,45,120,0.12)',
-            borderTop: '2px solid var(--accent-pink)',
-            borderBottom: '2px solid var(--accent-pink)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
+        <div className="reel-tilt">
+          <div
+            style={{
+              transform: `translateY(${translateY}px)`,
+              transition: phase === 'spinning' ? 'transform 3.6s cubic-bezier(0.1, 0.7, 0.1, 1)' : 'none',
+              willChange: 'transform',
+            }}
+            onTransitionEnd={handleTransitionEnd}
+          >
+            {reel.map((name, i) => {
+              const isCenter = i === centerIndexRef.current
+              const distance = Math.abs(i - centerIndexRef.current)
+              const blurAmount = spinning && !isCenter ? Math.min(distance * 0.5, 2.5) : 0
+              const opacity = isCenter ? 1 : Math.max(0.28, 0.85 - distance * 0.16)
 
-        {/* difuminado de los bordes superior/inferior, para que el carrete "aparezca" y "desaparezca" */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 2,
-            pointerEvents: 'none',
-            background: 'linear-gradient(var(--surface-card), transparent 24%, transparent 76%, var(--surface-card))',
-          }}
-        />
-
-        <div
-          style={{
-            transform: `translateY(${translateY}px)`,
-            transition: phase === 'spinning' ? 'transform 3.6s cubic-bezier(0.1, 0.7, 0.1, 1)' : 'none',
-            willChange: 'transform',
-          }}
-          onTransitionEnd={handleTransitionEnd}
-        >
-          {reel.map((name, i) => {
-            const isCenter = i === centerIndexRef.current
-            const distance = Math.abs(i - centerIndexRef.current)
-            const blurAmount = spinning && !isCenter ? Math.min(distance * 0.7, 4) : 0
-            return (
-              <div
-                key={i}
-                style={{
-                  height: ROW_HEIGHT,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  fontFamily: 'Baloo 2, sans-serif',
-                  fontWeight: isCenter ? 800 : 600,
-                  fontSize: isCenter ? 26 : 19,
-                  color: isCenter ? 'var(--accent-pink)' : 'rgba(255,255,255,0.45)',
-                  filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
-                  transform: isCenter ? 'scale(1)' : 'scale(0.94)',
-                  transition: 'color 0.25s, filter 0.25s',
-                }}
-              >
-                {isCenter && <span aria-hidden="true">→</span>}
-                <span>{name}</span>
-              </div>
-            )
-          })}
+              return (
+                <div
+                  key={i}
+                  className={isCenter && justLanded ? 'reel-winner-landed' : undefined}
+                  style={{
+                    height: ROW_HEIGHT,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    fontFamily: 'Baloo 2, sans-serif',
+                    fontWeight: isCenter ? 800 : 700,
+                    fontSize: isCenter ? 44 : 32,
+                    color: isCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
+                    textShadow: isCenter ? '0 0 22px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
+                    filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
+                    transform: isCenter ? `rotate(${TILT_DEG}deg)` : 'none',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {isCenter && (
+                    <span aria-hidden="true" style={{ color: 'var(--accent-yellow)' }}>
+                      →
+                    </span>
+                  )}
+                  <span>{name}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 
