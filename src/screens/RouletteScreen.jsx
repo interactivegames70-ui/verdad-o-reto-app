@@ -197,9 +197,9 @@ export default function RouletteScreen() {
               // El tamaño crece solo muy cerca del centro (como al pasar frente a la flecha);
               // el resto de los nombres se ven parejos, como en la referencia.
               const growT = Math.max(0, 1 - Math.min(distance, 2) / 2)
-              const baseSize = rowHeight * 0.68
-              const peakSize = rowHeight * 0.94
-              const fontSize = showAsCenter ? rowHeight * 0.94 : baseSize + (peakSize - baseSize) * growT
+              const baseSize = rowHeight * 0.56
+              const peakSize = rowHeight * 0.78
+              const fontSize = showAsCenter ? rowHeight * 0.78 : baseSize + (peakSize - baseSize) * growT
 
               return (
                 <div key={i} className="reel-row" style={{ height: rowHeight }}>
@@ -230,6 +230,8 @@ export default function RouletteScreen() {
             left: '4%',
             transform: 'translateY(-50%)',
             fontSize: rowHeight * 0.55,
+            fontWeight: 900,
+            WebkitTextStroke: '2px #ffffff',
             color: '#ffffff',
             filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.4))',
             pointerEvents: 'none',
