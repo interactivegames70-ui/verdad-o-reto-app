@@ -460,6 +460,8 @@ textarea {
 }
 
 .reel-tilt {
+  position: absolute;
+  inset: 0;
   transform: rotate(-11deg);
   transform-origin: 50% 50%;
 }

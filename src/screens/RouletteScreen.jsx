@@ -143,6 +143,10 @@ export default function RouletteScreen() {
         <div className="reel-tilt">
           <div
             style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
               transform: `translateY(${translateY}px)`,
               transition: phase === 'spinning' ? 'transform 3.9s cubic-bezier(0.1, 0.7, 0.1, 1)' : 'none',
               willChange: 'transform',
