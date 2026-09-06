@@ -90,8 +90,17 @@ export default function RouletteScreen() {
     centerIndexRef.current = newCenterIndex
 
     setReel(newReel)
+    // Paso 1: activamos la transición SIN mover todavía el carrete (misma posición actual),
+    // para que el navegador registre que hay una transición ANTES de cambiar translateY.
+    // Si movemos y activamos la transición en el mismo instante, el navegador salta
+    // directo al valor final en vez de animar.
     setPhase('spinning')
-    setTranslateY(centeredOffset(newCenterIndex, containerHeight, rowHeight))
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTranslateY(centeredOffset(newCenterIndex, containerHeight, rowHeight))
+      })
+    })
 
     // tics que simulan la desaceleración de la ruleta física
     let delay = 40
