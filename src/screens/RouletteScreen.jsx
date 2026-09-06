@@ -151,9 +151,10 @@ export default function RouletteScreen() {
           >
             {reel.map((name, i) => {
               const isCenter = i === centerIndexRef.current
-              const distance = Math.abs(i - centerIndexRef.current)
-              const blurAmount = spinning && !isCenter ? Math.min(distance * 0.45, 2.5) : 0
-              const opacity = isCenter ? 1 : Math.max(0.22, 0.85 - distance * 0.13)
+              const rawDistance = Math.abs(i - centerIndexRef.current)
+              const distance = Math.min(rawDistance, 6) // así los nombres lejanos no quedan casi invisibles durante el giro largo
+              const blurAmount = spinning && !isCenter ? distance * 0.35 : 0
+              const opacity = isCenter ? 1 : Math.max(0.38, 0.85 - distance * 0.08)
 
               return (
                 <div
