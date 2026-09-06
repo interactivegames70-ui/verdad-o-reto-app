@@ -46,6 +46,11 @@ export default function RouletteScreen() {
   const [reel, setReel] = useState(() => buildLoops(names, IDLE_LOOPS))
   const chosenRef = useRef(null)
   const centerIndexRef = useRef(Math.floor(reel.length / 2))
+  const phaseRef = useRef(phase)
+
+  useLayoutEffect(() => {
+    phaseRef.current = phase
+  }, [phase])
 
   useLayoutEffect(() => {
     const el = viewportRef.current
@@ -54,7 +59,7 @@ export default function RouletteScreen() {
       const h = el.clientHeight
       const rh = h / VISIBLE_ROWS
       setContainerHeight(h)
-      if (phase === 'idle') {
+      if (phaseRef.current === 'idle') {
         setTranslateY(centeredOffset(centerIndexRef.current, h, rh))
       }
     }
@@ -62,7 +67,6 @@ export default function RouletteScreen() {
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function spin() {
