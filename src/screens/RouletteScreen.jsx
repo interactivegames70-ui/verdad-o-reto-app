@@ -7,7 +7,7 @@ import { vibrate } from '../lib/haptics'
 const VISIBLE_ROWS = 7 // cuántas filas "caben" a la vez; el alto de cada una se calcula solo
 const IDLE_LOOPS = 8 // vueltas de relleno para que se vea lleno incluso antes de girar
 const SPIN_LOOPS = 14 // vueltas adicionales que se agregan cada vez que se gira
-const TILT_DEG = 11 // inclinación de la cascada de nombres (el ganador se endereza)
+const SPIN_MS = 3900 // duración del giro
 
 function shuffle(arr) {
   const a = [...arr]
@@ -30,6 +30,11 @@ function centeredOffset(index, containerHeight, rowH) {
   return containerHeight / 2 - (index * rowH + rowH / 2)
 }
 
+// Desaceleración marcada, como una ruleta física frenando (fuerte al inicio, suave al final).
+function easeOutQuint(t) {
+  return 1 - Math.pow(1 - t, 5)
+}
+
 export default function RouletteScreen() {
   const { state, dispatch } = useGame()
   const players = state.players
@@ -41,16 +46,12 @@ export default function RouletteScreen() {
 
   const [spinning, setSpinning] = useState(false)
   const [justLanded, setJustLanded] = useState(false)
-  const [phase, setPhase] = useState('idle') // 'idle' | 'spinning'
   const [translateY, setTranslateY] = useState(0)
   const [reel, setReel] = useState(() => buildLoops(names, IDLE_LOOPS))
   const chosenRef = useRef(null)
   const centerIndexRef = useRef(Math.floor(reel.length / 2))
-  const phaseRef = useRef(phase)
-
-  useLayoutEffect(() => {
-    phaseRef.current = phase
-  }, [phase])
+  const spinningRef = useRef(false)
+  const rafRef = useRef(null)
 
   useLayoutEffect(() => {
     const el = viewportRef.current
@@ -59,7 +60,7 @@ export default function RouletteScreen() {
       const h = el.clientHeight
       const rh = h / VISIBLE_ROWS
       setContainerHeight(h)
-      if (phaseRef.current === 'idle') {
+      if (!spinningRef.current) {
         setTranslateY(centeredOffset(centerIndexRef.current, h, rh))
       }
     }
@@ -72,6 +73,7 @@ export default function RouletteScreen() {
   function spin() {
     if (spinning || players.length === 0 || containerHeight === 0) return
     setSpinning(true)
+    spinningRef.current = true
     setJustLanded(false)
 
     // el ganador sale de la cola de turnos pendientes, no de todos los jugadores,
@@ -83,30 +85,49 @@ export default function RouletteScreen() {
 
     // Seguimos agregando filas DESPUÉS de las que ya se ven en pantalla, así el
     // carrete nunca "salta": continúa girando desde donde está hasta frenar en el ganador.
+    // Agregamos también relleno DESPUÉS del ganador, para que al frenar no quede vacío debajo.
+    const oldLen = reel.length
     const extension = buildLoops(names, SPIN_LOOPS)
     extension.push(winner.name)
-    const newReel = [...reel, ...extension]
-    const newCenterIndex = newReel.length - 1
+    const trailingFiller = buildLoops(names, IDLE_LOOPS)
+    const newReel = [...reel, ...extension, ...trailingFiller]
+    const newCenterIndex = oldLen + extension.length - 1
     centerIndexRef.current = newCenterIndex
-
     setReel(newReel)
-    // Paso 1: activamos la transición SIN mover todavía el carrete (misma posición actual),
-    // para que el navegador registre que hay una transición ANTES de cambiar translateY.
-    // Si movemos y activamos la transición en el mismo instante, el navegador salta
-    // directo al valor final en vez de animar.
-    setPhase('spinning')
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTranslateY(centeredOffset(newCenterIndex, containerHeight, rowHeight))
-      })
-    })
+    // Animamos con requestAnimationFrame en vez de una transición CSS: así el
+    // movimiento se ve garantizado en cualquier navegador, sin depender de que
+    // el navegador detecte el cambio de estilo a tiempo.
+    const startY = translateY
+    const endY = centeredOffset(newCenterIndex, containerHeight, rowHeight)
+    const startTime = performance.now()
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    const tick = (now) => {
+      const elapsed = now - startTime
+      const t = Math.min(elapsed / SPIN_MS, 1)
+      const eased = easeOutQuint(t)
+      setTranslateY(startY + (endY - startY) * eased)
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick)
+      } else {
+        spinningRef.current = false
+        setSpinning(false)
+        setJustLanded(true)
+        playLand()
+        vibrate([30, 40, 30])
+        setTimeout(() => {
+          dispatch({ type: 'SPIN_RESULT', playerId: chosenRef.current })
+        }, 550)
+      }
+    }
+    rafRef.current = requestAnimationFrame(tick)
 
     // tics que simulan la desaceleración de la ruleta física
     let delay = 40
     let elapsed = 0
     const scheduleTick = () => {
-      if (elapsed >= 3800) return
+      if (elapsed >= SPIN_MS - 100) return
       setTimeout(() => {
         playTick()
         elapsed += delay
@@ -117,17 +138,14 @@ export default function RouletteScreen() {
     scheduleTick()
   }
 
-  function handleTransitionEnd(e) {
-    if (e.propertyName !== 'transform' || phase !== 'spinning') return
-    setSpinning(false)
-    setPhase('idle')
-    setJustLanded(true)
-    playLand()
-    vibrate([30, 40, 30])
-    setTimeout(() => {
-      dispatch({ type: 'SPIN_RESULT', playerId: chosenRef.current })
-    }, 550)
-  }
+  // Solo renderizamos las filas realmente visibles (más un margen), aunque el
+  // carrete completo tenga miles de nombres acumulados tras varios giros.
+  const centerFloat = rowHeight > 0 ? (containerHeight / 2 - rowHeight / 2 - translateY) / rowHeight : 0
+  const buffer = Math.ceil(VISIBLE_ROWS / 2) + 3
+  const startIndex = Math.max(0, Math.floor(centerFloat - buffer))
+  const endIndex = Math.min(reel.length - 1, Math.ceil(centerFloat + buffer))
+  const visibleSlice = reel.slice(startIndex, endIndex + 1)
+  const spacerHeight = startIndex * rowHeight
 
   return (
     <div className="screen" style={{ padding: '20px 0 28px', gap: 12 }}>
@@ -157,20 +175,19 @@ export default function RouletteScreen() {
               left: 0,
               right: 0,
               transform: `translateY(${translateY}px)`,
-              transition: phase === 'spinning' ? 'transform 3.9s cubic-bezier(0.1, 0.7, 0.1, 1)' : 'none',
-              willChange: 'transform',
             }}
-            onTransitionEnd={handleTransitionEnd}
           >
-            {reel.map((name, i) => {
+            <div style={{ height: spacerHeight }} />
+            {visibleSlice.map((name, offsetInSlice) => {
+              const i = startIndex + offsetInSlice
               const isCenter = i === centerIndexRef.current
-              const showAsCenter = isCenter && !spinning // el estilo "ganador" solo se ve en reposo (al inicio o al frenar)
+              const showAsCenter = isCenter && !spinning
               const rawDistance = Math.abs(i - centerIndexRef.current)
               const distance = Math.min(rawDistance, 6)
-              // mientras gira, todos los nombres se ven parejos y legibles (como un carrete real en movimiento);
-              // el desvanecido por distancia solo se aplica en reposo, para el efecto de cascada.
               const blurAmount = spinning ? 0.6 : 0
               const opacity = showAsCenter ? 1 : spinning ? 0.82 : Math.max(0.38, 0.85 - distance * 0.08)
+              const signedDistance = i - centerIndexRef.current
+              const rotation = showAsCenter ? 0 : Math.max(-40, Math.min(40, signedDistance * 4))
 
               return (
                 <div
@@ -184,11 +201,11 @@ export default function RouletteScreen() {
                     gap: rowHeight * 0.14,
                     fontFamily: 'Baloo 2, sans-serif',
                     fontWeight: showAsCenter ? 800 : 700,
-                    fontSize: showAsCenter ? rowHeight * 0.6 : rowHeight * 0.42,
+                    fontSize: showAsCenter ? rowHeight * 0.74 : rowHeight * 0.42,
                     color: showAsCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
                     textShadow: showAsCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
                     filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
-                    transform: showAsCenter ? `rotate(${TILT_DEG}deg)` : 'none',
+                    transform: `rotate(${rotation}deg)`,
                     whiteSpace: 'nowrap',
                   }}
                 >
