@@ -190,6 +190,10 @@ export default function RouletteScreen() {
               const blurAmount = spinning ? Math.min(distance * 0.3, 1.8) : 0
               const opacity = showAsCenter ? 1 : Math.max(0.55, 0.8 - distance * 0.04)
               const rotation = Math.max(-45, Math.min(45, (i - centerFloat) * 2.5))
+              // Curva del punto de partida: mientras más lejos del centro, el nombre
+              // arranca un poco más a la izquierda (en vez de una línea recta vertical).
+              const curveT = Math.min(distance, 6) / 6
+              const curveShift = -rowHeight * 1.1 * Math.pow(curveT, 1.3)
               // Curvatura 3D: mientras más lejos del centro, el nombre se "hunde" hacia
               // adentro de la pantalla, como si estuviera pegado a un tambor circular real.
               const depthDeg = Math.max(-35, Math.min(35, (i - centerFloat) * 6))
@@ -212,7 +216,7 @@ export default function RouletteScreen() {
                       color: showAsCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
                       textShadow: showAsCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
                       filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
-                      transform: `translateY(-50%) rotate(${rotation}deg) rotateX(${depthDeg}deg) translateZ(${depthPush}px)`,
+                      transform: `translateY(-50%) translateX(${curveShift}px) rotate(${rotation}deg) rotateX(${depthDeg}deg) translateZ(${depthPush}px)`,
                     }}
                   >
                     {name}
