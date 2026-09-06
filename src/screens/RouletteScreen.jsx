@@ -175,6 +175,7 @@ export default function RouletteScreen() {
               left: 0,
               right: 0,
               transform: `translateY(${translateY}px)`,
+              transformStyle: 'preserve-3d',
             }}
           >
             <div style={{ height: spacerHeight }} />
@@ -187,12 +188,16 @@ export default function RouletteScreen() {
               const blurAmount = spinning ? Math.min(distance * 0.3, 1.8) : 0
               const opacity = showAsCenter ? 1 : Math.max(0.55, 0.8 - distance * 0.04)
               const rotation = Math.max(-45, Math.min(45, (i - centerFloat) * 2.5))
+              // Curvatura 3D: mientras más lejos del centro, el nombre se "hunde" hacia
+              // adentro de la pantalla, como si estuviera pegado a un tambor circular real.
+              const depthDeg = Math.max(-35, Math.min(35, (i - centerFloat) * 6))
+              const depthPush = -Math.min(distance, 6) * 22
               // El tamaño crece solo muy cerca del centro (como al pasar frente a la flecha);
               // el resto de los nombres se ven parejos, como en la referencia.
               const growT = Math.max(0, 1 - Math.min(distance, 2) / 2)
-              const baseSize = rowHeight * 0.78
-              const peakSize = rowHeight * 1.05
-              const fontSize = showAsCenter ? rowHeight * 1.05 : baseSize + (peakSize - baseSize) * growT
+              const baseSize = rowHeight * 0.68
+              const peakSize = rowHeight * 0.94
+              const fontSize = showAsCenter ? rowHeight * 0.94 : baseSize + (peakSize - baseSize) * growT
 
               return (
                 <div key={i} className="reel-row" style={{ height: rowHeight }}>
@@ -205,7 +210,7 @@ export default function RouletteScreen() {
                       color: showAsCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
                       textShadow: showAsCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
                       filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
-                      transform: `translateY(-50%) rotate(${rotation}deg)`,
+                      transform: `translateY(-50%) rotate(${rotation}deg) rotateX(${depthDeg}deg) translateZ(${depthPush}px)`,
                     }}
                   >
                     {name}

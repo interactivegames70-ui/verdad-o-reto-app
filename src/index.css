@@ -457,11 +457,13 @@ textarea {
   position: relative;
   overflow-x: visible;
   overflow-y: hidden;
+  perspective: 700px;
 }
 
 .reel-tilt {
   position: absolute;
   inset: 0;
+  transform-style: preserve-3d;
 }
 
 .reel-row {
@@ -471,7 +473,7 @@ textarea {
 .reel-row-text {
   position: absolute;
   top: 50%;
-  left: 12%;
+  left: 20%;
   transform-origin: left center;
   white-space: nowrap;
 }
