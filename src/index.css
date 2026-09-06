@@ -464,10 +464,22 @@ textarea {
   inset: 0;
 }
 
+.reel-row {
+  position: relative;
+}
+
+.reel-row-text {
+  position: absolute;
+  top: 50%;
+  left: 12%;
+  transform-origin: left center;
+  white-space: nowrap;
+}
+
 @keyframes reel-winner-pop {
-  0% { transform: scale(0.8) rotate(0deg); }
-  55% { transform: scale(1.16) rotate(0deg); }
-  100% { transform: scale(1) rotate(0deg); }
+  0% { transform: translateY(-50%) scale(0.8) rotate(0deg); }
+  55% { transform: translateY(-50%) scale(1.16) rotate(0deg); }
+  100% { transform: translateY(-50%) scale(1) rotate(0deg); }
 }
 
 .reel-winner-landed {

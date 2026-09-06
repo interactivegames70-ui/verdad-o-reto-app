@@ -4,7 +4,7 @@ import Confetti from '../components/Confetti'
 import { playTick, playLand } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
 
-const VISIBLE_ROWS = 7 // cuántas filas "caben" a la vez; el alto de cada una se calcula solo
+const VISIBLE_ROWS = 5 // cuántas filas "caben" a la vez; el alto de cada una se calcula solo
 const IDLE_LOOPS = 8 // vueltas de relleno para que se vea lleno incluso antes de girar
 const SPIN_LOOPS = 14 // vueltas adicionales que se agregan cada vez que se gira
 const SPIN_MS = 3900 // duración del giro
@@ -185,29 +185,31 @@ export default function RouletteScreen() {
               const rawDistance = Math.abs(i - centerFloat)
               const distance = Math.min(rawDistance, 6)
               const blurAmount = spinning ? Math.min(distance * 0.3, 1.8) : 0
-              const opacity = showAsCenter ? 1 : Math.max(0.38, 0.85 - distance * 0.08)
-              const rotation = Math.max(-40, Math.min(40, (i - centerFloat) * 4))
+              const opacity = showAsCenter ? 1 : Math.max(0.55, 0.8 - distance * 0.04)
+              const rotation = Math.max(-45, Math.min(45, (i - centerFloat) * 2.5))
+              // El tamaño crece solo muy cerca del centro (como al pasar frente a la flecha);
+              // el resto de los nombres se ven parejos, como en la referencia.
+              const growT = Math.max(0, 1 - Math.min(distance, 2) / 2)
+              const baseSize = rowHeight * 0.78
+              const peakSize = rowHeight * 1.05
+              const fontSize = showAsCenter ? rowHeight * 1.05 : baseSize + (peakSize - baseSize) * growT
 
               return (
-                <div
-                  key={i}
-                  className={showAsCenter && justLanded ? 'reel-winner-landed' : undefined}
-                  style={{
-                    height: rowHeight,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Baloo 2, sans-serif',
-                    fontWeight: showAsCenter ? 800 : 700,
-                    fontSize: showAsCenter ? rowHeight * 0.74 : rowHeight * 0.42,
-                    color: showAsCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
-                    textShadow: showAsCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
-                    filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
-                    transform: `rotate(${rotation}deg)`,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {name}
+                <div key={i} className="reel-row" style={{ height: rowHeight }}>
+                  <span
+                    className={showAsCenter && justLanded ? 'reel-winner-landed reel-row-text' : 'reel-row-text'}
+                    style={{
+                      fontFamily: 'Baloo 2, sans-serif',
+                      fontWeight: showAsCenter ? 800 : 700,
+                      fontSize,
+                      color: showAsCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
+                      textShadow: showAsCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
+                      filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
+                      transform: `translateY(-50%) rotate(${rotation}deg)`,
+                    }}
+                  >
+                    {name}
+                  </span>
                 </div>
               )
             })}
@@ -218,11 +220,11 @@ export default function RouletteScreen() {
           style={{
             position: 'absolute',
             top: '50%',
-            left: '9%',
+            left: '4%',
             transform: 'translateY(-50%)',
-            fontSize: rowHeight * 0.5,
-            color: 'var(--accent-yellow)',
-            filter: 'drop-shadow(0 0 6px rgba(255,210,63,0.6))',
+            fontSize: rowHeight * 0.55,
+            color: '#ffffff',
+            filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.4))',
             pointerEvents: 'none',
             zIndex: 5,
           }}
