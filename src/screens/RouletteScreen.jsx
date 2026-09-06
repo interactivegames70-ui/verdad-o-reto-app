@@ -155,15 +155,18 @@ export default function RouletteScreen() {
           >
             {reel.map((name, i) => {
               const isCenter = i === centerIndexRef.current
+              const showAsCenter = isCenter && !spinning // el estilo "ganador" solo se ve en reposo (al inicio o al frenar)
               const rawDistance = Math.abs(i - centerIndexRef.current)
-              const distance = Math.min(rawDistance, 6) // así los nombres lejanos no quedan casi invisibles durante el giro largo
-              const blurAmount = spinning && !isCenter ? distance * 0.35 : 0
-              const opacity = isCenter ? 1 : Math.max(0.38, 0.85 - distance * 0.08)
+              const distance = Math.min(rawDistance, 6)
+              // mientras gira, todos los nombres se ven parejos y legibles (como un carrete real en movimiento);
+              // el desvanecido por distancia solo se aplica en reposo, para el efecto de cascada.
+              const blurAmount = spinning ? 0.6 : 0
+              const opacity = showAsCenter ? 1 : spinning ? 0.82 : Math.max(0.38, 0.85 - distance * 0.08)
 
               return (
                 <div
                   key={i}
-                  className={isCenter && justLanded ? 'reel-winner-landed' : undefined}
+                  className={showAsCenter && justLanded ? 'reel-winner-landed' : undefined}
                   style={{
                     height: rowHeight,
                     display: 'flex',
@@ -171,16 +174,16 @@ export default function RouletteScreen() {
                     justifyContent: 'center',
                     gap: rowHeight * 0.14,
                     fontFamily: 'Baloo 2, sans-serif',
-                    fontWeight: isCenter ? 800 : 700,
-                    fontSize: isCenter ? rowHeight * 0.6 : rowHeight * 0.42,
-                    color: isCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
-                    textShadow: isCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
+                    fontWeight: showAsCenter ? 800 : 700,
+                    fontSize: showAsCenter ? rowHeight * 0.6 : rowHeight * 0.42,
+                    color: showAsCenter ? '#ffffff' : `rgba(255,255,255,${opacity})`,
+                    textShadow: showAsCenter ? '0 0 24px rgba(255,45,120,0.75), 0 0 3px rgba(0,0,0,0.4)' : 'none',
                     filter: blurAmount ? `blur(${blurAmount}px)` : 'none',
-                    transform: isCenter ? `rotate(${TILT_DEG}deg)` : 'none',
+                    transform: showAsCenter ? `rotate(${TILT_DEG}deg)` : 'none',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {isCenter && (
+                  {showAsCenter && (
                     <span aria-hidden="true" style={{ color: 'var(--accent-yellow)' }}>
                       →
                     </span>
