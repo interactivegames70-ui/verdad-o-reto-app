@@ -51,6 +51,7 @@ export default function OnlineRouletteScreen() {
   const centerIndexRef = useRef(Math.floor(reel.length / 2))
   const spinningRef = useRef(false)
   const rafRef = useRef(null)
+  const lastTickFloorRef = useRef(null)
 
   useLayoutEffect(() => {
     const el = viewportRef.current
@@ -100,13 +101,27 @@ export default function OnlineRouletteScreen() {
     const startY = translateY
     const endY = centeredOffset(newCenterIndex, containerHeight, rowHeight)
     const startTime = performance.now()
+    lastTickFloorRef.current = rowHeight > 0 ? Math.floor((containerHeight / 2 - rowHeight / 2 - startY) / rowHeight) : null
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const tick = (now) => {
       const elapsed = now - startTime
       const t = Math.min(elapsed / SPIN_MS, 1)
       const eased = easeOutQuint(t)
-      setTranslateY(startY + (endY - startY) * eased)
+      const currentY = startY + (endY - startY) * eased
+      setTranslateY(currentY)
+
+      // El "tic" suena justo cuando un nombre cruza el centro, no en un ritmo aparte:
+      // así el sonido queda pegado al movimiento real, y se desacelera solo porque
+      // el propio movimiento se hace más lento.
+      if (rowHeight > 0) {
+        const currentFloor = Math.floor((containerHeight / 2 - rowHeight / 2 - currentY) / rowHeight)
+        if (currentFloor !== lastTickFloorRef.current) {
+          playTick()
+          lastTickFloorRef.current = currentFloor
+        }
+      }
+
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick)
       } else {
@@ -121,20 +136,6 @@ export default function OnlineRouletteScreen() {
       }
     }
     rafRef.current = requestAnimationFrame(tick)
-
-    // tics que simulan la desaceleración de la ruleta física
-    let delay = 40
-    let elapsed = 0
-    const scheduleTick = () => {
-      if (elapsed >= SPIN_MS - 100) return
-      setTimeout(() => {
-        playTick()
-        elapsed += delay
-        delay = Math.min(delay * 1.15, 220)
-        scheduleTick()
-      }, delay)
-    }
-    scheduleTick()
   }
 
   // Solo renderizamos las filas realmente visibles (más un margen), aunque el
