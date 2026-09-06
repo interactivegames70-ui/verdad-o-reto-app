@@ -182,12 +182,11 @@ export default function RouletteScreen() {
               const i = startIndex + offsetInSlice
               const isCenter = i === centerIndexRef.current
               const showAsCenter = isCenter && !spinning
-              const rawDistance = Math.abs(i - centerIndexRef.current)
+              const rawDistance = Math.abs(i - centerFloat)
               const distance = Math.min(rawDistance, 6)
-              const blurAmount = spinning ? 0.6 : 0
-              const opacity = showAsCenter ? 1 : spinning ? 0.82 : Math.max(0.38, 0.85 - distance * 0.08)
-              const signedDistance = i - centerIndexRef.current
-              const rotation = showAsCenter ? 0 : Math.max(-40, Math.min(40, signedDistance * 4))
+              const blurAmount = spinning ? Math.min(distance * 0.3, 1.8) : 0
+              const opacity = showAsCenter ? 1 : Math.max(0.38, 0.85 - distance * 0.08)
+              const rotation = Math.max(-40, Math.min(40, (i - centerFloat) * 4))
 
               return (
                 <div
@@ -198,7 +197,6 @@ export default function RouletteScreen() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: rowHeight * 0.14,
                     fontFamily: 'Baloo 2, sans-serif',
                     fontWeight: showAsCenter ? 800 : 700,
                     fontSize: showAsCenter ? rowHeight * 0.74 : rowHeight * 0.42,
@@ -209,16 +207,27 @@ export default function RouletteScreen() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {showAsCenter && (
-                    <span aria-hidden="true" style={{ color: 'var(--accent-yellow)' }}>
-                      →
-                    </span>
-                  )}
-                  <span>{name}</span>
+                  {name}
                 </div>
               )
             })}
           </div>
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '9%',
+            transform: 'translateY(-50%)',
+            fontSize: rowHeight * 0.5,
+            color: 'var(--accent-yellow)',
+            filter: 'drop-shadow(0 0 6px rgba(255,210,63,0.6))',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          →
         </div>
       </div>
 
