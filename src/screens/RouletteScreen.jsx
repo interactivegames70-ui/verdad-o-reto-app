@@ -161,7 +161,9 @@ export default function RouletteScreen() {
         ref={viewportRef}
         className="reel-viewport"
         style={{
-          height: 'clamp(320px, 58vh, 620px)',
+          flex: 1,
+          minHeight: 280,
+          maxHeight: 640,
           width: '100%',
           maskImage: 'linear-gradient(transparent, black 12%, black 88%, transparent)',
           WebkitMaskImage: 'linear-gradient(transparent, black 12%, black 88%, transparent)',
