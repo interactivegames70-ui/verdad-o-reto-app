@@ -228,6 +228,7 @@ export default function OnlineRouletteScreen() {
         </div>
         <div
           aria-hidden="true"
+          className={justLanded ? 'arrow-landed' : undefined}
           style={{
             position: 'absolute',
             top: '50%',

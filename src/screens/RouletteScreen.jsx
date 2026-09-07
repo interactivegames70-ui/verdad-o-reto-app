@@ -229,6 +229,7 @@ export default function RouletteScreen() {
         </div>
         <div
           aria-hidden="true"
+          className={justLanded ? 'arrow-landed' : undefined}
           style={{
             position: 'absolute',
             top: '50%',
