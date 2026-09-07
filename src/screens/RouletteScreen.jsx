@@ -4,7 +4,7 @@ import Confetti from '../components/Confetti'
 import { playTick, playLand } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
 
-const VISIBLE_ROWS = 5 // cuántas filas "caben" a la vez; el alto de cada una se calcula solo
+const VISIBLE_ROWS = 6 // cuántas filas "caben" a la vez; el alto de cada una se calcula solo
 const IDLE_LOOPS = 8 // vueltas de relleno para que se vea lleno incluso antes de girar
 const SPIN_LOOPS = 14 // vueltas adicionales que se agregan cada vez que se gira
 const SPIN_MS = 3900 // duración del giro
