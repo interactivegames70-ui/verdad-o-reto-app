@@ -5,12 +5,12 @@ import { pickCard } from '../data/content'
 
 const OnlineGameContext = createContext(null)
 
-const FIXED_ROUNDS = 5
+const DEFAULT_ROUNDS = 3
 
 const emptyGameState = {
   screen: 'roulette', // roulette | challenge | results
-  totalTurns: FIXED_ROUNDS,
-  turnIndex: 0,
+  totalRounds: DEFAULT_ROUNDS,
+  roundIndex: 0,
   turnQueue: [],
   currentPlayerId: null,
   choice: null,
@@ -202,7 +202,7 @@ export function OnlineGameProvider({ children }) {
         status: 'playing',
         state: {
           ...emptyGameState,
-          totalTurns: Math.min(FIXED_ROUNDS, ids.length),
+          totalRounds: ids.length > 0 ? DEFAULT_ROUNDS : 0,
           turnQueue: shuffledIds(ids),
         },
       })
@@ -212,8 +212,7 @@ export function OnlineGameProvider({ children }) {
 
   async function spinResult(playerId) {
     if (!isHost) return
-    let queue = gameState.turnQueue.filter((id) => id !== playerId)
-    if (queue.length === 0) queue = shuffledIds(players.map((p) => p.client_id))
+    const queue = gameState.turnQueue.filter((id) => id !== playerId)
     await updateState({
       currentPlayerId: playerId,
       turnQueue: queue,
@@ -272,11 +271,15 @@ export function OnlineGameProvider({ children }) {
       }
     }
     const cardHistory = gameState.card ? [...gameState.cardHistory, gameState.card.text] : gameState.cardHistory
-    const nextTurnIndex = gameState.turnIndex + 1
-    const done = nextTurnIndex >= gameState.totalTurns
+    // Una ronda termina cuando ya respondieron todos (la cola de esta ronda queda vacía).
+    const roundComplete = gameState.turnQueue.length === 0
+    const nextRoundIndex = roundComplete ? gameState.roundIndex + 1 : gameState.roundIndex
+    const done = roundComplete && nextRoundIndex >= gameState.totalRounds
+    const nextTurnQueue = roundComplete && !done ? shuffledIds(players.map((p) => p.client_id)) : gameState.turnQueue
     await updateState({
       cardHistory,
-      turnIndex: nextTurnIndex,
+      roundIndex: nextRoundIndex,
+      turnQueue: nextTurnQueue,
       screen: done ? 'results' : 'roulette',
       currentPlayerId: null,
       choice: null,

@@ -40,7 +40,7 @@ export default function ChallengeScreen() {
     <div className="screen">
       <div className="top-bar">
         <span className="progress-pill">
-          Turno {state.turnIndex + 1} de {state.totalTurns}
+          Ronda {state.roundIndex + 1} de {state.totalRounds}
         </span>
         <span className="progress-pill">
           {player.name} · {player.score} pts

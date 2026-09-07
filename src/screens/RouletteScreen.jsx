@@ -152,7 +152,7 @@ export default function RouletteScreen() {
     <div className="screen" style={{ padding: '20px 0 28px', gap: 12 }}>
       <div style={{ textAlign: 'center' }}>
         <span className="progress-pill">
-          Turno {state.turnIndex + 1} de {state.totalTurns}
+          Ronda {state.roundIndex + 1} de {state.totalRounds}
         </span>
       </div>
 

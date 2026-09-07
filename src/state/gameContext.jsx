@@ -4,7 +4,7 @@ import { incrementCardUses } from '../lib/community'
 
 const GameContext = createContext(null)
 
-const FIXED_ROUNDS = 5
+const DEFAULT_ROUNDS = 3
 
 const initialState = {
   screen: 'home', // home | setup | players | custom | roulette | challenge | results
@@ -12,8 +12,8 @@ const initialState = {
   modality: null, // 'presencial' | 'distancia'
   players: [], // { id, name, score }
   customCards: [], // { id, type: 'truth'|'dare', level, text, timerSeconds }
-  totalTurns: 0,
-  turnIndex: 0,
+  totalRounds: 0,
+  roundIndex: 0,
   turnQueue: [], // ids pendientes en el ciclo actual, para repartir turnos parejo
   currentPlayerId: null,
   choice: null, // 'truth' | 'dare'
@@ -76,13 +76,12 @@ function reducer(state, action) {
       return {
         ...state,
         screen: 'roulette',
-        totalTurns: Math.min(FIXED_ROUNDS, state.players.length > 0 ? FIXED_ROUNDS : 0),
-        turnIndex: 0,
+        totalRounds: state.players.length > 0 ? DEFAULT_ROUNDS : 0,
+        roundIndex: 0,
         turnQueue: shuffledIds(state.players),
       }
     case 'SPIN_RESULT': {
-      let queue = state.turnQueue.filter((id) => id !== action.playerId)
-      if (queue.length === 0) queue = shuffledIds(state.players)
+      const queue = state.turnQueue.filter((id) => id !== action.playerId)
       return {
         ...state,
         currentPlayerId: action.playerId,
@@ -123,19 +122,23 @@ function reducer(state, action) {
       )
       const cardHistory = state.card ? [...state.cardHistory, state.card.text] : state.cardHistory
       if (state.card?.communityId) incrementCardUses(state.card.communityId) // fire-and-forget
-      const nextTurnIndex = state.turnIndex + 1
-      const done = nextTurnIndex >= state.totalTurns
       const statsThisGame = { ...state.statsThisGame }
       if (state.choice === 'truth') statsThisGame.truths += 1
       else if (state.choice === 'dare') {
         if (action.fulfilled) statsThisGame.daresCompleted += 1
         else statsThisGame.daresFailed += 1
       }
+      // Una ronda termina cuando ya respondieron todos (la cola de esta ronda queda vacía).
+      const roundComplete = state.turnQueue.length === 0
+      const nextRoundIndex = roundComplete ? state.roundIndex + 1 : state.roundIndex
+      const done = roundComplete && nextRoundIndex >= state.totalRounds
+      const nextTurnQueue = roundComplete && !done ? shuffledIds(players) : state.turnQueue
       return {
         ...state,
         players,
         cardHistory,
-        turnIndex: nextTurnIndex,
+        roundIndex: nextRoundIndex,
+        turnQueue: nextTurnQueue,
         screen: done ? 'results' : 'roulette',
         statsThisGame,
       }

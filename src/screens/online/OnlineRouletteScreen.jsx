@@ -151,7 +151,7 @@ export default function OnlineRouletteScreen() {
     <div className="screen" style={{ padding: '20px 0 28px', gap: 12 }}>
       <div style={{ textAlign: 'center' }}>
         <span className="progress-pill">
-          Turno {gameState.turnIndex + 1} de {gameState.totalTurns}
+          Ronda {gameState.roundIndex + 1} de {gameState.totalRounds}
         </span>
       </div>
 

@@ -40,7 +40,7 @@ export default function OnlineChallengeScreen() {
     <div className="screen">
       <div className="top-bar">
         <span className="progress-pill">
-          Turno {gameState.turnIndex + 1} de {gameState.totalTurns}
+          Ronda {gameState.roundIndex + 1} de {gameState.totalRounds}
         </span>
         <span className="progress-pill">
           {player.name} · {player.score} pts
