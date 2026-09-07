@@ -508,6 +508,34 @@ textarea {
   .arrow-landed { animation: none; }
 }
 
+@keyframes arrow-breathe {
+  0%, 100% { transform: translateY(-50%) scale(1); filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4)); }
+  50% { transform: translateY(-50%) scale(1.1); filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8)); }
+}
+
+.arrow-idle {
+  animation: arrow-breathe 1.7s ease-in-out infinite;
+}
+
+@keyframes arrow-bump {
+  0% { transform: translateY(-50%) scale(1) rotate(0deg); }
+  30% { transform: translateY(-50%) scale(1.28) rotate(-8deg); }
+  60% { transform: translateY(-50%) scale(0.92) rotate(5deg); }
+  100% { transform: translateY(-50%) scale(1) rotate(0deg); }
+}
+
+.arrow-bump-a {
+  animation: arrow-bump 0.18s ease-out;
+}
+
+.arrow-bump-b {
+  animation: arrow-bump 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow-idle, .arrow-bump-a, .arrow-bump-b { animation: none; }
+}
+
 /* ---------- Timer con urgencia ---------- */
 .timer-urgent {
   color: var(--accent-pink) !important;

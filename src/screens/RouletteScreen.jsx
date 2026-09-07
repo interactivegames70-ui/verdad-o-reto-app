@@ -46,6 +46,7 @@ export default function RouletteScreen() {
 
   const [spinning, setSpinning] = useState(false)
   const [justLanded, setJustLanded] = useState(false)
+  const [bumpParity, setBumpParity] = useState(0)
   const [translateY, setTranslateY] = useState(0)
   const [reel, setReel] = useState(() => buildLoops(names, IDLE_LOOPS))
   const chosenRef = useRef(null)
@@ -120,6 +121,7 @@ export default function RouletteScreen() {
         if (currentFloor !== lastTickFloorRef.current) {
           playTick()
           lastTickFloorRef.current = currentFloor
+          setBumpParity((p) => (p === 0 ? 1 : 0))
         }
       }
 
@@ -229,7 +231,7 @@ export default function RouletteScreen() {
         </div>
         <div
           aria-hidden="true"
-          className={justLanded ? 'arrow-landed' : undefined}
+          className={justLanded ? 'arrow-landed' : spinning ? (bumpParity === 0 ? 'arrow-bump-a' : 'arrow-bump-b') : 'arrow-idle'}
           style={{
             position: 'absolute',
             top: '50%',
