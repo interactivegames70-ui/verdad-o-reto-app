@@ -201,9 +201,9 @@ export default function OnlineRouletteScreen() {
               // El tamaño crece solo muy cerca del centro (como al pasar frente a la flecha);
               // el resto de los nombres se ven parejos, como en la referencia.
               const growT = Math.max(0, 1 - Math.min(distance, 2) / 2)
-              const baseSize = rowHeight * 0.56
-              const peakSize = rowHeight * 0.78
-              const fontSize = showAsCenter ? rowHeight * 0.78 : baseSize + (peakSize - baseSize) * growT
+              const baseSize = rowHeight * 0.46
+              const peakSize = rowHeight * 0.64
+              const fontSize = showAsCenter ? rowHeight * 0.64 : baseSize + (peakSize - baseSize) * growT
 
               return (
                 <div key={i} className="reel-row" style={{ height: rowHeight }}>
