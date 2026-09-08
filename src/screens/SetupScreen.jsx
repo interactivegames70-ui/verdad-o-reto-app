@@ -16,6 +16,11 @@ export default function SetupScreen() {
         <h2 className="title" style={{ fontSize: 26 }}>
           ¿Cómo van a jugar?
         </h2>
+        {state.communityMode && (
+          <p className="subtitle" style={{ marginTop: 6 }}>
+            🌐 En este modo, las preguntas y retos fueron creados por otros jugadores.
+          </p>
+        )}
       </div>
 
       <div>
