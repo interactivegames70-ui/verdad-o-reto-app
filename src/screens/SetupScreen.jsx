@@ -1,6 +1,6 @@
 import { useGame } from '../state/gameContext'
 
-export default function SetupScreen() {
+export default function SetupScreen({ onGoCommunityCreate }) {
   const { state, dispatch } = useGame()
 
   return (
@@ -70,6 +70,12 @@ export default function SetupScreen() {
           </button>
         </div>
       </div>
+
+      {state.communityMode && (
+        <button className="btn btn-secondary btn-block" style={{ fontSize: 14, padding: '12px 16px' }} onClick={onGoCommunityCreate}>
+          + Enviar una pregunta o reto
+        </button>
+      )}
     </div>
   )
 }
