@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useOnlineGame } from '../../state/onlineGameContext'
+import { useAuth } from '../../state/authContext'
 import { LEVELS } from '../../data/content'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../../lib/sound'
 import { vibrate } from '../../lib/haptics'
 
 export default function OnlineChallengeScreen() {
   const { players, gameState, isHost, isMyTurn, chooseType, selectLevel, redrawCard, setFulfilled, nextTurn } = useOnlineGame()
+  const { profile } = useAuth()
+  const isPremium = profile?.is_premium === true
+  const [premiumMessage, setPremiumMessage] = useState(false)
   const player = players.find((p) => p.client_id === gameState.currentPlayerId)
   const [timeLeft, setTimeLeft] = useState(null)
   const [timerRunning, setTimerRunning] = useState(false)
@@ -13,6 +17,7 @@ export default function OnlineChallengeScreen() {
   useEffect(() => {
     setTimeLeft(null)
     setTimerRunning(false)
+    setPremiumMessage(false)
     if (gameState.card) {
       playReveal()
       vibrate(15)
@@ -80,31 +85,51 @@ export default function OnlineChallengeScreen() {
             Elegí el nivel de intensidad
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {LEVELS.map((lvl) => (
-              <button
-                key={lvl.id}
-                className="option-card"
-                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-                onClick={() => selectLevel(lvl.id)}
-              >
-                <span style={{ flex: 1 }}>
-                  <span className="label">
-                    {lvl.id}. {lvl.name}
+            {LEVELS.map((lvl) => {
+              const locked = lvl.premium && !isPremium
+              return (
+                <button
+                  key={lvl.id}
+                  className="option-card"
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    opacity: locked ? 0.55 : 1,
+                  }}
+                  onClick={() => {
+                    if (locked) {
+                      setPremiumMessage(true)
+                      return
+                    }
+                    selectLevel(lvl.id)
+                  }}
+                >
+                  <span style={{ flex: 1 }}>
+                    <span className="label">
+                      {locked && '🔒 '}
+                      {lvl.id}. {lvl.name}
+                    </span>
+                    <br />
+                    <span className="desc">{lvl.tagline}</span>
+                    <span className="intensity-bar" aria-hidden="true">
+                      {[1, 2, 3, 4].map((n) => (
+                        <span key={n} className={n <= lvl.id ? 'filled' : ''} />
+                      ))}
+                    </span>
                   </span>
-                  <br />
-                  <span className="desc">{lvl.tagline}</span>
-                  <span className="intensity-bar" aria-hidden="true">
-                    {[1, 2, 3, 4].map((n) => (
-                      <span key={n} className={n <= lvl.id ? 'filled' : ''} />
-                    ))}
+                  <span aria-hidden="true" style={{ fontSize: 18, marginLeft: 10 }}>
+                    {'🌶️'.repeat(lvl.id)}
                   </span>
-                </span>
-                <span aria-hidden="true" style={{ fontSize: 18, marginLeft: 10 }}>
-                  {'🌶️'.repeat(lvl.id)}
-                </span>
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
+          {premiumMessage && (
+            <p className="subtitle" style={{ textAlign: 'center', marginTop: 10, color: 'var(--accent-pink)' }}>
+              🔒 Ese nivel es Premium — muy pronto vas a poder desbloquearlo.
+            </p>
+          )}
         </div>
       )}
 
@@ -152,10 +177,25 @@ export default function OnlineChallengeScreen() {
 
           {isMyTurn && gameState.fulfilled === null && (
             <>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={redrawCard}>
-                  Cambiar carta
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button
+                  className="btn btn-secondary"
+                  style={{ opacity: isPremium ? 1 : 0.55 }}
+                  onClick={() => {
+                    if (!isPremium) {
+                      setPremiumMessage(true)
+                      return
+                    }
+                    redrawCard()
+                  }}
+                >
+                  {isPremium ? 'Cambiar carta' : '🔒 Cambiar carta (Premium)'}
                 </button>
+                {premiumMessage && (
+                  <p className="subtitle" style={{ textAlign: 'center', color: 'var(--accent-pink)' }}>
+                    🔒 Cambiar carta es una función Premium — muy pronto vas a poder desbloquearla.
+                  </p>
+                )}
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button
