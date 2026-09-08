@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { useOnlineGame } from '../../state/onlineGameContext'
 import { useAuth } from '../../state/authContext'
 import { LEVELS } from '../../data/content'
+import { TESTING_UNLOCK_PREMIUM } from '../../config'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../../lib/sound'
 import { vibrate } from '../../lib/haptics'
 
 export default function OnlineChallengeScreen() {
   const { players, gameState, isHost, isMyTurn, chooseType, selectLevel, redrawCard, setFulfilled, nextTurn } = useOnlineGame()
   const { profile } = useAuth()
-  const isPremium = profile?.is_premium === true
+  const isPremium = TESTING_UNLOCK_PREMIUM || profile?.is_premium === true
   const [premiumMessage, setPremiumMessage] = useState(false)
   const player = players.find((p) => p.client_id === gameState.currentPlayerId)
   const [timeLeft, setTimeLeft] = useState(null)

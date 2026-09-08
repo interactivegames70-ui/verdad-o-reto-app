@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { useGame } from '../state/gameContext'
 import { useAuth } from '../state/authContext'
 import { LEVELS } from '../data/content'
+import { TESTING_UNLOCK_PREMIUM } from '../config'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
 
 export default function ChallengeScreen() {
   const { state, dispatch } = useGame()
   const { profile } = useAuth()
-  const isPremium = profile?.is_premium === true
+  const isPremium = TESTING_UNLOCK_PREMIUM || profile?.is_premium === true
   const [premiumMessage, setPremiumMessage] = useState(false)
   const player = state.players.find((p) => p.id === state.currentPlayerId)
   const [timeLeft, setTimeLeft] = useState(null)
