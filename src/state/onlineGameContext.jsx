@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { supabase } from '../lib/supabase'
 import { getClientId } from '../lib/clientId'
 import { pickCard } from '../data/content'
+import { fetchApprovedCards } from '../lib/community'
 
 const OnlineGameContext = createContext(null)
 
@@ -18,6 +19,8 @@ const emptyGameState = {
   card: null,
   fulfilled: null,
   cardHistory: [],
+  communityEnabled: false,
+  communityCards: [], // cartas aprobadas de la comunidad, cargadas al activar el toggle
 }
 
 function shuffledIds(ids) {
@@ -204,6 +207,8 @@ export function OnlineGameProvider({ children }) {
           ...emptyGameState,
           totalRounds: ids.length > 0 ? DEFAULT_ROUNDS : 0,
           turnQueue: shuffledIds(ids),
+          communityEnabled: gameState.communityEnabled,
+          communityCards: gameState.communityCards,
         },
       })
       .eq('id', room.id)
@@ -224,6 +229,27 @@ export function OnlineGameProvider({ children }) {
     })
   }
 
+  // --- Contenido de la comunidad: solo el anfitrión lo activa, aplica para toda la sala ---
+  async function toggleCommunity() {
+    if (!isHost || !room) return
+    const enabling = !gameState.communityEnabled
+    if (!enabling) {
+      await updateState({ communityEnabled: false, communityCards: [] })
+      return
+    }
+    const { data } = await fetchApprovedCards({ group: room.group_mode, modality: 'distancia' })
+    const mapped = data.map((c) => ({
+      communityId: c.id,
+      type: c.type,
+      level: c.level,
+      modality: c.modality,
+      group: c.group_mode,
+      text: c.text,
+      timerSeconds: c.timer_seconds ?? undefined,
+    }))
+    await updateState({ communityEnabled: true, communityCards: mapped })
+  }
+
   // --- Acciones de quien tiene el turno: elige personalmente verdad/reto, nivel y si lo cumplió ---
   async function chooseType(choice) {
     if (!isMyTurn) return
@@ -238,7 +264,7 @@ export function OnlineGameProvider({ children }) {
       modality: 'distancia',
       group: room.group_mode,
       history: gameState.cardHistory,
-      customCards: [],
+      customCards: gameState.communityEnabled ? gameState.communityCards : [],
     })
     await updateState({ level, card })
   }
@@ -251,7 +277,7 @@ export function OnlineGameProvider({ children }) {
       modality: 'distancia',
       group: room.group_mode,
       history: gameState.cardHistory,
-      customCards: [],
+      customCards: gameState.communityEnabled ? gameState.communityCards : [],
     })
     await updateState({ card })
   }
@@ -316,6 +342,7 @@ export function OnlineGameProvider({ children }) {
     chooseType,
     selectLevel,
     redrawCard,
+    toggleCommunity,
     setFulfilled,
     nextTurn,
     playAgain,

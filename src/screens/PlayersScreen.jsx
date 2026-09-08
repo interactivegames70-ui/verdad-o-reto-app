@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { useGame } from '../state/gameContext'
-import { fetchApprovedCards } from '../lib/community'
 
 const MIN_PLAYERS = { pareja: 2, grupo: 3 }
 
 export default function PlayersScreen() {
   const { state, dispatch } = useGame()
   const [name, setName] = useState('')
-  const [loadingCommunity, setLoadingCommunity] = useState(false)
   const min = MIN_PLAYERS[state.group] ?? 2
   const max = state.group === 'pareja' ? 2 : 12
 
@@ -15,25 +13,6 @@ export default function PlayersScreen() {
     if (state.players.length >= max) return
     dispatch({ type: 'ADD_PLAYER', name })
     setName('')
-  }
-
-  async function toggleCommunity() {
-    const enabling = !state.communityEnabled
-    dispatch({ type: 'SET_COMMUNITY_ENABLED', enabled: enabling })
-    if (!enabling) return
-    setLoadingCommunity(true)
-    const { data } = await fetchApprovedCards({ group: state.group, modality: state.modality })
-    const mapped = data.map((c) => ({
-      communityId: c.id,
-      type: c.type,
-      level: c.level,
-      modality: c.modality,
-      group: c.group_mode,
-      text: c.text,
-      timerSeconds: c.timer_seconds ?? undefined,
-    }))
-    dispatch({ type: 'SET_COMMUNITY_CARDS', cards: mapped })
-    setLoadingCommunity(false)
   }
 
   return (
@@ -117,24 +96,7 @@ export default function PlayersScreen() {
         + Agregar preguntas o retos propios{state.customCards.length > 0 ? ` (${state.customCards.length})` : ''}
       </button>
 
-      <button
-        className="btn btn-secondary btn-block"
-        style={{ fontSize: 14, padding: '12px 16px' }}
-        onClick={toggleCommunity}
-        disabled={loadingCommunity}
-      >
-        {loadingCommunity
-          ? 'Cargando contenido de la comunidad…'
-          : state.communityEnabled
-            ? `✓ Contenido de la comunidad activado (${state.communityCards.length})`
-            : 'Sumar contenido de la comunidad'}
-      </button>
-
-      <button
-        className="btn btn-primary btn-block"
-        disabled={state.players.length < min}
-        onClick={() => dispatch({ type: 'START_GAME' })}
-      >
+      <button className="btn btn-primary btn-block" disabled={state.players.length < min} onClick={() => dispatch({ type: 'START_GAME' })}>
         Empezar a jugar
       </button>
     </div>

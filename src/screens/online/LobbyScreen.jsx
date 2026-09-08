@@ -1,7 +1,15 @@
+import { useState } from 'react'
 import { useOnlineGame } from '../../state/onlineGameContext'
 
 export default function LobbyScreen() {
-  const { room, players, isHost, startGame, leaveRoom } = useOnlineGame()
+  const { room, players, isHost, gameState, startGame, leaveRoom, toggleCommunity } = useOnlineGame()
+  const [loadingCommunity, setLoadingCommunity] = useState(false)
+
+  async function handleToggleCommunity() {
+    setLoadingCommunity(true)
+    await toggleCommunity()
+    setLoadingCommunity(false)
+  }
 
   return (
     <div className="screen">
@@ -36,6 +44,21 @@ export default function LobbyScreen() {
           ))}
         </div>
       </div>
+
+      {isHost && (
+        <button
+          className="btn btn-secondary btn-block"
+          style={{ fontSize: 14, padding: '12px 16px' }}
+          onClick={handleToggleCommunity}
+          disabled={loadingCommunity}
+        >
+          {loadingCommunity
+            ? 'Cargando contenido de la comunidad…'
+            : gameState.communityEnabled
+              ? `✓ Contenido de la comunidad activado (${gameState.communityCards.length})`
+              : 'Sumar contenido de la comunidad'}
+        </button>
+      )}
 
       {isHost ? (
         <button className="btn btn-primary btn-block" disabled={players.length < 2} onClick={startGame}>
