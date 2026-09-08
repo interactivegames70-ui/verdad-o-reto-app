@@ -52,7 +52,7 @@ export default function SetupScreen() {
           >
             <span className="icon">🏠</span>
             <span className="label">Presencial</span>
-            <span className="desc">Mismo dispositivo, en persona</span>
+            <span className="desc">Todos se encuentran en el mismo lugar</span>
           </button>
           <button
             className={`option-card ${state.modality === 'distancia' ? 'selected' : ''}`}
@@ -61,7 +61,7 @@ export default function SetupScreen() {
           >
             <span className="icon">📱</span>
             <span className="label">A distancia</span>
-            <span className="desc">Cada quien con su cel</span>
+            <span className="desc">Los jugadores se encuentran en lugares diferentes</span>
           </button>
         </div>
       </div>
