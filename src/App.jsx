@@ -28,10 +28,10 @@ const SCREENS = {
   results: ResultsScreen,
 }
 
-function LocalRouter({ onGoOnline, onGoAccount, onGoCommunity }) {
+function LocalRouter({ onGoOnline, onGoAccount, onGoCommunityCreate }) {
   const { state } = useGame()
   const Screen = SCREENS[state.screen] ?? HomeScreen
-  return <Screen onGoOnline={onGoOnline} onGoAccount={onGoAccount} onGoCommunity={onGoCommunity} />
+  return <Screen onGoOnline={onGoOnline} onGoAccount={onGoAccount} onGoCommunityCreate={onGoCommunityCreate} />
 }
 
 function AccountRouter({ onExit }) {
@@ -63,7 +63,7 @@ function useGlobalTapFeedback() {
 }
 
 function AppShell() {
-  const [mode, setMode] = useState('local') // 'local' | 'online' | 'account' | 'community'
+  const [mode, setMode] = useState('local') // 'local' | 'online' | 'account' | 'community' | 'community-create'
   useGlobalTapFeedback()
 
   return (
@@ -72,11 +72,12 @@ function AppShell() {
       {mode === 'online' && <OnlineGameScreen onExit={() => setMode('local')} />}
       {mode === 'account' && <AccountRouter onExit={() => setMode('local')} />}
       {mode === 'community' && <CommunityRouter onExit={() => setMode('local')} />}
+      {mode === 'community-create' && <CreateCommunityCardScreen onBack={() => setMode('local')} />}
       {mode === 'local' && (
         <LocalRouter
           onGoOnline={() => setMode('online')}
           onGoAccount={() => setMode('account')}
-          onGoCommunity={() => setMode('community')}
+          onGoCommunityCreate={() => setMode('community-create')}
         />
       )}
     </>

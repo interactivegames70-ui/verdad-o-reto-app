@@ -3,7 +3,7 @@ import { useGame } from '../state/gameContext'
 import { useAuth } from '../state/authContext'
 import { isEffectsEnabled, setEffectsEnabled } from '../lib/sound'
 
-export default function HomeScreen({ onGoOnline, onGoAccount, onGoCommunity }) {
+export default function HomeScreen({ onGoOnline, onGoAccount }) {
   const { dispatch } = useGame()
   const { user, profile } = useAuth()
   const [effectsOn, setEffectsOn] = useState(isEffectsEnabled())
@@ -83,7 +83,7 @@ export default function HomeScreen({ onGoOnline, onGoAccount, onGoCommunity }) {
         <button className="btn btn-secondary btn-block" onClick={onGoOnline}>
           Partida online
         </button>
-        <button className="btn btn-secondary btn-block" onClick={onGoCommunity}>
+        <button className="btn btn-secondary btn-block" onClick={() => dispatch({ type: 'GO_SETUP', communityMode: true })}>
           Contenido de la comunidad
         </button>
       </div>

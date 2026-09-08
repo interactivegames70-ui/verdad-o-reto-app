@@ -1,13 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGame } from '../state/gameContext'
+import { fetchApprovedCards } from '../lib/community'
 
 const MIN_PLAYERS = { pareja: 2, grupo: 3 }
 
-export default function PlayersScreen() {
+export default function PlayersScreen({ onGoCommunityCreate }) {
   const { state, dispatch } = useGame()
   const [name, setName] = useState('')
   const min = MIN_PLAYERS[state.group] ?? 2
   const max = state.group === 'pareja' ? 2 : 12
+
+  // En modo "Contenido de la comunidad" activamos las cartas de la comunidad
+  // automáticamente, sin necesidad de un interruptor manual.
+  useEffect(() => {
+    if (!state.communityMode || state.communityEnabled) return
+    let cancelled = false
+    async function loadCommunity() {
+      dispatch({ type: 'SET_COMMUNITY_ENABLED', enabled: true })
+      const { data } = await fetchApprovedCards({ group: state.group, modality: state.modality })
+      if (cancelled) return
+      const mapped = data.map((c) => ({
+        communityId: c.id,
+        type: c.type,
+        level: c.level,
+        modality: c.modality,
+        group: c.group_mode,
+        text: c.text,
+        timerSeconds: c.timer_seconds ?? undefined,
+      }))
+      dispatch({ type: 'SET_COMMUNITY_CARDS', cards: mapped })
+    }
+    loadCommunity()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.communityMode])
 
   function addPlayer() {
     if (state.players.length >= max) return
@@ -31,6 +59,11 @@ export default function PlayersScreen() {
         <p className="subtitle" style={{ marginTop: 6 }}>
           {state.group === 'pareja' ? 'Necesitas 2 jugadores.' : `Mínimo ${min} jugadores.`}
         </p>
+        {state.communityMode && (
+          <span className="progress-pill" style={{ marginTop: 10, display: 'inline-block' }}>
+            🌐 Jugando con contenido de la comunidad
+          </span>
+        )}
       </div>
 
       <form
@@ -99,6 +132,12 @@ export default function PlayersScreen() {
       <button className="btn btn-primary btn-block" disabled={state.players.length < min} onClick={() => dispatch({ type: 'START_GAME' })}>
         Empezar a jugar
       </button>
+
+      {state.communityMode && (
+        <button className="btn btn-secondary btn-block" style={{ fontSize: 14, padding: '12px 16px' }} onClick={onGoCommunityCreate}>
+          + Envía una pregunta o reto
+        </button>
+      )}
     </div>
   )
 }

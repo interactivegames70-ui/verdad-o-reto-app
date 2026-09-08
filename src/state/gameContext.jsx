@@ -23,6 +23,7 @@ const initialState = {
   statsThisGame: { truths: 0, daresCompleted: 0, daresFailed: 0 },
   communityEnabled: false,
   communityCards: [], // cartas aprobadas de la comunidad, cargadas al activar el toggle
+  communityMode: false, // true cuando se entró por "Contenido de la comunidad" desde Home
 }
 
 function shuffledIds(players) {
@@ -37,7 +38,7 @@ function shuffledIds(players) {
 function reducer(state, action) {
   switch (action.type) {
     case 'GO_SETUP':
-      return { ...initialState, screen: 'setup' }
+      return { ...initialState, screen: 'setup', communityMode: !!action.communityMode }
     case 'SET_GROUP':
       return { ...state, group: action.group }
     case 'SET_MODALITY':
