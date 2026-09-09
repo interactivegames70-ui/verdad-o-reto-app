@@ -103,6 +103,7 @@ function reducer(state, action) {
         group: state.group,
         history: state.cardHistory,
         customCards: [...state.customCards, ...(state.communityEnabled ? state.communityCards : [])],
+        otherPlayerNames: state.players.filter((p) => p.id !== state.currentPlayerId).map((p) => p.name),
       })
       return { ...state, level: action.level, card }
     }
@@ -114,6 +115,7 @@ function reducer(state, action) {
         group: state.group,
         history: state.cardHistory,
         customCards: [...state.customCards, ...(state.communityEnabled ? state.communityCards : [])],
+        otherPlayerNames: state.players.filter((p) => p.id !== state.currentPlayerId).map((p) => p.name),
       })
       return { ...state, card }
     }

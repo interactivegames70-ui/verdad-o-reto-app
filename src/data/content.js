@@ -114,17 +114,16 @@ export const DARES = [
   { level: 4, modality: 'ambas', group: 'pareja', text: 'Confiesa cuál ha sido el momento más íntimo que recuerdas entre nosotros, con todo el detalle que te animes a dar.', timerSeconds: 45 },
 ]
 
-export function pickCard({ type, level, modality, group, history, customCards = [] }) {
+export function pickCard({ type, level, modality, group, history, customCards = [], otherPlayerNames = [] }) {
   const base = type === 'truth' ? TRUTHS : DARES
   const custom = customCards.filter((c) => c.type === type && c.level === level)
 
-  // Búsqueda progresiva: exacto → ignora grupo → ignora modalidad → cualquier carta del nivel.
-  // Así el juego nunca se queda sin nada que mostrar, aunque falte contenido para una combinación puntual.
+  // Búsqueda progresiva, pero la modalidad NUNCA se relaja: una carta pensada
+  // para estar en el mismo lugar no debe aparecerle a alguien que juega a
+  // distancia, y viceversa. Lo que sí se relaja es el grupo (pareja/grupo).
   const strategies = [
     (c) => c.level === level && (c.modality === 'ambas' || c.modality === modality) && (c.group === 'ambas' || c.group === group),
     (c) => c.level === level && (c.modality === 'ambas' || c.modality === modality),
-    (c) => c.level === level && (c.group === 'ambas' || c.group === group),
-    (c) => c.level === level,
   ]
 
   for (const matches of strategies) {
@@ -132,7 +131,18 @@ export function pickCard({ type, level, modality, group, history, customCards = 
     if (pool.length === 0) continue
     const unused = pool.filter((c) => !history.includes(c.text))
     const source = unused.length > 0 ? unused : pool
-    return source[Math.floor(Math.random() * source.length)]
+    const picked = source[Math.floor(Math.random() * source.length)]
+    return resolvePlaceholders(picked, otherPlayerNames)
   }
   return null
+}
+
+// Reemplaza "#user" en el texto de la carta por el nombre de un jugador al
+// azar (distinto de quien tiene el turno). Solo algunas cartas usan esto.
+function resolvePlaceholders(card, otherPlayerNames) {
+  if (!card.text.includes('#user')) return card
+  const name = otherPlayerNames.length > 0
+    ? otherPlayerNames[Math.floor(Math.random() * otherPlayerNames.length)]
+    : 'otro jugador'
+  return { ...card, text: card.text.replaceAll('#user', name) }
 }

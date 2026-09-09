@@ -265,6 +265,7 @@ export function OnlineGameProvider({ children }) {
       group: room.group_mode,
       history: gameState.cardHistory,
       customCards: gameState.communityEnabled ? gameState.communityCards : [],
+      otherPlayerNames: players.filter((p) => p.client_id !== gameState.currentPlayerId).map((p) => p.name),
     })
     await updateState({ level, card })
   }
@@ -278,6 +279,7 @@ export function OnlineGameProvider({ children }) {
       group: room.group_mode,
       history: gameState.cardHistory,
       customCards: gameState.communityEnabled ? gameState.communityCards : [],
+      otherPlayerNames: players.filter((p) => p.client_id !== gameState.currentPlayerId).map((p) => p.name),
     })
     await updateState({ card })
   }
