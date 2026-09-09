@@ -46,7 +46,7 @@ export default function PlayersScreen({ onGoCommunityCreate }) {
   return (
     <div className="screen">
       <div className="top-bar">
-        <button className="back-btn" onClick={() => dispatch({ type: 'GO_SETUP' })}>
+        <button className="back-btn" onClick={() => dispatch({ type: 'GO_SETUP', communityMode: state.communityMode })}>
           ‹ Volver
         </button>
       </div>
