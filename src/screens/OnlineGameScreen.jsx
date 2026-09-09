@@ -4,6 +4,7 @@ import OnlineHomeScreen from './online/OnlineHomeScreen'
 import CreateRoomScreen from './online/CreateRoomScreen'
 import JoinRoomScreen from './online/JoinRoomScreen'
 import LobbyScreen from './online/LobbyScreen'
+import OnlineCustomContentScreen from './online/OnlineCustomContentScreen'
 import OnlineRouletteScreen from './online/OnlineRouletteScreen'
 import OnlineChallengeScreen from './online/OnlineChallengeScreen'
 import OnlineResultsScreen from './online/OnlineResultsScreen'
@@ -15,6 +16,7 @@ function OnlineRouter({ onExit }) {
   if (status === 'create') return <CreateRoomScreen />
   if (status === 'join') return <JoinRoomScreen />
   if (status === 'lobby') return <LobbyScreen />
+  if (status === 'custom') return <OnlineCustomContentScreen />
 
   if (status === 'playing' && room) {
     if (gameState.screen === 'challenge') return <OnlineChallengeScreen />

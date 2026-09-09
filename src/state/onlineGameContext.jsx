@@ -21,6 +21,7 @@ const emptyGameState = {
   cardHistory: [],
   communityEnabled: false,
   communityCards: [], // cartas aprobadas de la comunidad, cargadas al activar el toggle
+  customCards: [], // { id, type: 'truth'|'dare', level, text, timerSeconds } — agregadas por el anfitrión, para esta sala
 }
 
 function shuffledIds(ids) {
@@ -209,6 +210,7 @@ export function OnlineGameProvider({ children }) {
           turnQueue: shuffledIds(ids),
           communityEnabled: gameState.communityEnabled,
           communityCards: gameState.communityCards,
+          customCards: gameState.customCards,
         },
       })
       .eq('id', room.id)
@@ -227,6 +229,18 @@ export function OnlineGameProvider({ children }) {
       card: null,
       fulfilled: null,
     })
+  }
+
+  // --- Contenido propio: solo el anfitrión lo agrega, aplica para toda la sala ---
+  async function addCustomCard({ cardType, level, text, timerSeconds }) {
+    if (!isHost || !text.trim()) return
+    const card = { id: Date.now() + Math.random(), type: cardType, level, text: text.trim(), timerSeconds }
+    await updateState({ customCards: [...gameState.customCards, card] })
+  }
+
+  async function removeCustomCard(id) {
+    if (!isHost) return
+    await updateState({ customCards: gameState.customCards.filter((c) => c.id !== id) })
   }
 
   // --- Contenido de la comunidad: solo el anfitrión lo activa, aplica para toda la sala ---
@@ -264,7 +278,7 @@ export function OnlineGameProvider({ children }) {
       modality: room.modality,
       group: room.group_mode,
       history: gameState.cardHistory,
-      customCards: gameState.communityEnabled ? gameState.communityCards : [],
+      customCards: [...gameState.customCards, ...(gameState.communityEnabled ? gameState.communityCards : [])],
       otherPlayerNames: players.filter((p) => p.client_id !== gameState.currentPlayerId).map((p) => p.name),
     })
     await updateState({ level, card })
@@ -278,7 +292,7 @@ export function OnlineGameProvider({ children }) {
       modality: room.modality,
       group: room.group_mode,
       history: gameState.cardHistory,
-      customCards: gameState.communityEnabled ? gameState.communityCards : [],
+      customCards: [...gameState.customCards, ...(gameState.communityEnabled ? gameState.communityCards : [])],
       otherPlayerNames: players.filter((p) => p.client_id !== gameState.currentPlayerId).map((p) => p.name),
     })
     await updateState({ card })
@@ -345,6 +359,8 @@ export function OnlineGameProvider({ children }) {
     selectLevel,
     redrawCard,
     toggleCommunity,
+    addCustomCard,
+    removeCustomCard,
     setFulfilled,
     nextTurn,
     playAgain,

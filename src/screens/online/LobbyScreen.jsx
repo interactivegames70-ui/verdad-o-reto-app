@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useOnlineGame } from '../../state/onlineGameContext'
 
 export default function LobbyScreen() {
-  const { room, players, isHost, gameState, startGame, leaveRoom, toggleCommunity } = useOnlineGame()
+  const { room, players, isHost, gameState, startGame, leaveRoom, toggleCommunity, setStatus } = useOnlineGame()
   const [loadingCommunity, setLoadingCommunity] = useState(false)
 
   async function handleToggleCommunity() {
@@ -44,6 +44,16 @@ export default function LobbyScreen() {
           ))}
         </div>
       </div>
+
+      {isHost && (
+        <button
+          className="btn btn-secondary btn-block"
+          style={{ fontSize: 14, padding: '12px 16px' }}
+          onClick={() => setStatus('custom')}
+        >
+          + Agregar preguntas y retos propios{gameState.customCards.length > 0 ? ` (${gameState.customCards.length})` : ''}
+        </button>
+      )}
 
       {isHost && (
         <button
