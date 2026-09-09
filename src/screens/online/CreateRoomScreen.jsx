@@ -58,14 +58,24 @@ export default function CreateRoomScreen() {
       </div>
 
       <div>
-        <p className="subtitle" style={{ marginBottom: 10 }}>Modalidad</p>
+        <p className="subtitle" style={{ marginBottom: 10 }}>
+          Modalidad {!group && <span style={{ color: 'var(--accent-yellow)' }}>· elegí el modo primero ↑</span>}
+        </p>
         <div className="option-grid">
-          <button className={`option-card ${modality === 'presencial' ? 'selected' : ''}`} onClick={() => setModality('presencial')}>
+          <button
+            className={`option-card ${modality === 'presencial' ? 'selected' : ''}`}
+            disabled={!group}
+            onClick={() => setModality('presencial')}
+          >
             <span className="icon">🏠</span>
             <span className="label">Presencial</span>
             <span className="desc">Todos se encuentran en el mismo lugar</span>
           </button>
-          <button className={`option-card ${modality === 'distancia' ? 'selected' : ''}`} onClick={() => setModality('distancia')}>
+          <button
+            className={`option-card ${modality === 'distancia' ? 'selected' : ''}`}
+            disabled={!group}
+            onClick={() => setModality('distancia')}
+          >
             <span className="icon">📱</span>
             <span className="label">A distancia</span>
             <span className="desc">Los jugadores se encuentran en lugares diferentes</span>
