@@ -91,14 +91,14 @@ export function OnlineGameProvider({ children }) {
     }
   }, [])
 
-  async function createRoom({ hostName, group }) {
+  async function createRoom({ hostName, group, modality }) {
     setError(null)
     let code = makeRoomCode()
     let insertedRoom = null
     for (let attempt = 0; attempt < 5 && !insertedRoom; attempt++) {
       const { data, error: insertError } = await supabase
         .from('rooms')
-        .insert({ code, host_client_id: clientId, group_mode: group, status: 'lobby', state: emptyGameState })
+        .insert({ code, host_client_id: clientId, group_mode: group, modality, status: 'lobby', state: emptyGameState })
         .select()
         .single()
       if (!insertError) {
@@ -237,7 +237,7 @@ export function OnlineGameProvider({ children }) {
       await updateState({ communityEnabled: false, communityCards: [] })
       return
     }
-    const { data } = await fetchApprovedCards({ group: room.group_mode, modality: 'distancia' })
+    const { data } = await fetchApprovedCards({ group: room.group_mode, modality: room.modality })
     const mapped = data.map((c) => ({
       communityId: c.id,
       type: c.type,
@@ -261,7 +261,7 @@ export function OnlineGameProvider({ children }) {
     const card = pickCard({
       type: gameState.choice,
       level,
-      modality: 'distancia',
+      modality: room.modality,
       group: room.group_mode,
       history: gameState.cardHistory,
       customCards: gameState.communityEnabled ? gameState.communityCards : [],
@@ -274,7 +274,7 @@ export function OnlineGameProvider({ children }) {
     const card = pickCard({
       type: gameState.choice,
       level: gameState.level,
-      modality: 'distancia',
+      modality: room.modality,
       group: room.group_mode,
       history: gameState.cardHistory,
       customCards: gameState.communityEnabled ? gameState.communityCards : [],
