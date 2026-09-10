@@ -36,7 +36,7 @@ export default function OnlineHomeScreen({ onExit }) {
           className="btn btn-primary btn-block"
           onClick={() => {
             setError(null)
-            setStatus('create')
+            setStatus('content-choice')
           }}
         >
           Crear partida

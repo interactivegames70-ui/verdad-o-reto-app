@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useOnlineGame } from '../../state/onlineGameContext'
 
 export default function CreateRoomScreen() {
-  const { createRoom, setStatus, error } = useOnlineGame()
+  const { createRoom, setStatus, error, pendingCommunityMode } = useOnlineGame()
   const [name, setName] = useState('')
   const [group, setGroup] = useState(null)
   const [modality, setModality] = useState(null)
@@ -11,14 +11,14 @@ export default function CreateRoomScreen() {
   async function handleCreate() {
     if (!name.trim() || !group || !modality || submitting) return
     setSubmitting(true)
-    await createRoom({ hostName: name, group, modality })
+    await createRoom({ hostName: name, group, modality, communityMode: pendingCommunityMode })
     setSubmitting(false)
   }
 
   return (
     <div className="screen">
       <div className="top-bar">
-        <button className="back-btn" onClick={() => setStatus('home')}>
+        <button className="back-btn" onClick={() => setStatus('content-choice')}>
           ‹ Volver
         </button>
       </div>

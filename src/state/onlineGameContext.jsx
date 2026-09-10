@@ -44,6 +44,7 @@ function makeRoomCode() {
 export function OnlineGameProvider({ children }) {
   const clientId = getClientId()
   const [status, setStatus] = useState('idle') // idle | home | lobby | playing | error
+  const [pendingCommunityMode, setPendingCommunityMode] = useState(false)
   const [error, setError] = useState(null)
   const [room, setRoom] = useState(null) // fila de la tabla rooms
   const [players, setPlayers] = useState([]) // filas de room_players
@@ -92,14 +93,28 @@ export function OnlineGameProvider({ children }) {
     }
   }, [])
 
-  async function createRoom({ hostName, group, modality }) {
+  async function createRoom({ hostName, group, modality, communityMode }) {
     setError(null)
     let code = makeRoomCode()
     let insertedRoom = null
+    let initialState = emptyGameState
+    if (communityMode) {
+      const { data } = await fetchApprovedCards({ group, modality })
+      const mapped = data.map((c) => ({
+        communityId: c.id,
+        type: c.type,
+        level: c.level,
+        modality: c.modality,
+        group: c.group_mode,
+        text: c.text,
+        timerSeconds: c.timer_seconds ?? undefined,
+      }))
+      initialState = { ...emptyGameState, communityEnabled: true, communityCards: mapped }
+    }
     for (let attempt = 0; attempt < 5 && !insertedRoom; attempt++) {
       const { data, error: insertError } = await supabase
         .from('rooms')
-        .insert({ code, host_client_id: clientId, group_mode: group, modality, status: 'lobby', state: emptyGameState })
+        .insert({ code, host_client_id: clientId, group_mode: group, modality, status: 'lobby', state: initialState })
         .select()
         .single()
       if (!insertError) {
@@ -359,6 +374,8 @@ export function OnlineGameProvider({ children }) {
     selectLevel,
     redrawCard,
     toggleCommunity,
+    pendingCommunityMode,
+    setPendingCommunityMode,
     addCustomCard,
     removeCustomCard,
     setFulfilled,

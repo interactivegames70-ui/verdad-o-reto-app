@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { OnlineGameProvider, useOnlineGame } from '../state/onlineGameContext'
 import OnlineHomeScreen from './online/OnlineHomeScreen'
+import OnlineContentChoiceScreen from './online/OnlineContentChoiceScreen'
 import CreateRoomScreen from './online/CreateRoomScreen'
 import JoinRoomScreen from './online/JoinRoomScreen'
 import LobbyScreen from './online/LobbyScreen'
@@ -13,6 +14,7 @@ function OnlineRouter({ onExit }) {
   const { status, room, gameState } = useOnlineGame()
 
   if (status === 'home' || status === 'error') return <OnlineHomeScreen onExit={onExit} />
+  if (status === 'content-choice') return <OnlineContentChoiceScreen />
   if (status === 'create') return <CreateRoomScreen />
   if (status === 'join') return <JoinRoomScreen />
   if (status === 'lobby') return <LobbyScreen />

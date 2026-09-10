@@ -37,6 +37,8 @@ function shuffledIds(players) {
 
 function reducer(state, action) {
   switch (action.type) {
+    case 'GO_CONTENT_CHOICE':
+      return { ...initialState, screen: 'content-choice' }
     case 'GO_SETUP':
       return { ...initialState, screen: 'setup', communityMode: !!action.communityMode }
     case 'SET_GROUP':

@@ -6,13 +6,13 @@ export default function SetupScreen({ onGoCommunityCreate }) {
   return (
     <div className="screen">
       <div className="top-bar">
-        <button className="back-btn" onClick={() => dispatch({ type: 'GO_HOME' })}>
+        <button className="back-btn" onClick={() => dispatch({ type: 'GO_CONTENT_CHOICE' })}>
           ‹ Volver
         </button>
       </div>
 
       <div>
-        <p className="eyebrow">Paso 1 de 2</p>
+        <p className="eyebrow">Paso 2 de 3</p>
         <h2 className="title" style={{ fontSize: 26 }}>
           ¿Cómo van a jugar?
         </h2>

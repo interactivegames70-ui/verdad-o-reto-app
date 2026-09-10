@@ -5,6 +5,7 @@ import { playClick } from './lib/sound'
 import { vibrate } from './lib/haptics'
 import BackgroundBlobs from './components/BackgroundBlobs'
 import HomeScreen from './screens/HomeScreen'
+import ContentChoiceScreen from './screens/ContentChoiceScreen'
 import SetupScreen from './screens/SetupScreen'
 import PlayersScreen from './screens/PlayersScreen'
 import CustomContentScreen from './screens/CustomContentScreen'
@@ -20,6 +21,7 @@ import AdminModerationScreen from './screens/community/AdminModerationScreen'
 
 const SCREENS = {
   home: HomeScreen,
+  'content-choice': ContentChoiceScreen,
   setup: SetupScreen,
   players: PlayersScreen,
   custom: CustomContentScreen,

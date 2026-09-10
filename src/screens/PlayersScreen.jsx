@@ -52,7 +52,7 @@ export default function PlayersScreen({ onGoCommunityCreate }) {
       </div>
 
       <div>
-        <p className="eyebrow">Paso 2 de 2</p>
+        <p className="eyebrow">Paso 3 de 3</p>
         <h2 className="title" style={{ fontSize: 26 }}>
           ¿Quiénes juegan?
         </h2>

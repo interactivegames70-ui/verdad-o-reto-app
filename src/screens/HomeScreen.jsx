@@ -77,14 +77,11 @@ export default function HomeScreen({ onGoOnline, onGoAccount }) {
       </div>
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button className="btn btn-primary btn-block" onClick={() => dispatch({ type: 'GO_SETUP' })}>
+        <button className="btn btn-primary btn-block" onClick={() => dispatch({ type: 'GO_CONTENT_CHOICE' })}>
           Partida rápida
         </button>
         <button className="btn btn-secondary btn-block" onClick={onGoOnline}>
           Partida online
-        </button>
-        <button className="btn btn-secondary btn-block" onClick={() => dispatch({ type: 'GO_SETUP', communityMode: true })}>
-          Contenido de la comunidad
         </button>
       </div>
     </div>
