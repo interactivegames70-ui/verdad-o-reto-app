@@ -26,7 +26,7 @@ export default function ContentChoiceScreen() {
         >
           <span className="icon">🎲</span>
           <span className="label">Preguntas y retos de la aplicación</span>
-          <span className="desc">El banco de contenido de siempre</span>
+          <span className="desc">Modo clásico</span>
         </button>
         <button
           className="option-card"
