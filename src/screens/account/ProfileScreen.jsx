@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth, AVATAR_EMOJIS, AVATAR_COLORS } from '../../state/authContext'
 
-export default function ProfileScreen({ onBack, onGoModeration, onGoAdminContent }) {
+export default function ProfileScreen({ onBack }) {
   const { profile, loadingProfile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.username ?? '')
   const [emoji, setEmoji] = useState(profile?.avatar_emoji ?? AVATAR_EMOJIS[0])
@@ -130,22 +130,6 @@ export default function ProfileScreen({ onBack, onGoModeration, onGoAdminContent
           ))}
         </div>
       </div>
-
-      {profile.is_admin && (
-        <div>
-          <p className="subtitle" style={{ marginBottom: 10 }}>
-            Admin
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <button className="btn btn-secondary btn-block" style={{ fontSize: 14 }} onClick={onGoAdminContent}>
-              Contenido oficial (agregar/editar/quitar)
-            </button>
-            <button className="btn btn-secondary btn-block" style={{ fontSize: 14 }} onClick={onGoModeration}>
-              Moderar contenido de la comunidad
-            </button>
-          </div>
-        </div>
-      )}
 
       <button className="btn btn-secondary btn-block" onClick={signOut}>
         Cerrar sesión

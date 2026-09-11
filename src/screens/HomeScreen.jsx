@@ -1,12 +1,30 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useGame } from '../state/gameContext'
 import { useAuth } from '../state/authContext'
 import { isEffectsEnabled, setEffectsEnabled } from '../lib/sound'
 
-export default function HomeScreen({ onGoOnline, onGoAccount }) {
+const SECRET_TAPS_NEEDED = 7
+const SECRET_TAP_WINDOW_MS = 1500
+
+export default function HomeScreen({ onGoOnline, onGoAccount, onSecretAdminTap }) {
   const { dispatch } = useGame()
   const { user, profile } = useAuth()
   const [effectsOn, setEffectsOn] = useState(isEffectsEnabled())
+  const tapCountRef = useRef(0)
+  const tapTimerRef = useRef(null)
+
+  function handleDiceTap() {
+    tapCountRef.current += 1
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
+    if (tapCountRef.current >= SECRET_TAPS_NEEDED) {
+      tapCountRef.current = 0
+      onSecretAdminTap?.()
+      return
+    }
+    tapTimerRef.current = setTimeout(() => {
+      tapCountRef.current = 0
+    }, SECRET_TAP_WINDOW_MS)
+  }
 
   return (
     <div className="screen" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: 32 }}>
@@ -55,6 +73,7 @@ export default function HomeScreen({ onGoOnline, onGoAccount }) {
         <div
           className="hero-badge"
           aria-hidden="true"
+          onClick={handleDiceTap}
           style={{
             width: 96,
             height: 96,

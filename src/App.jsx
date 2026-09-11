@@ -19,6 +19,8 @@ import CommunityScreen from './screens/community/CommunityScreen'
 import CreateCommunityCardScreen from './screens/community/CreateCommunityCardScreen'
 import AdminModerationScreen from './screens/community/AdminModerationScreen'
 import AdminContentScreen from './screens/admin/AdminContentScreen'
+import AdminGateScreen from './screens/admin/AdminGateScreen'
+import AdminMenuScreen from './screens/admin/AdminMenuScreen'
 
 const SCREENS = {
   home: HomeScreen,
@@ -31,26 +33,23 @@ const SCREENS = {
   results: ResultsScreen,
 }
 
-function LocalRouter({ onGoOnline, onGoAccount, onGoCommunityCreate }) {
+function LocalRouter({ onGoOnline, onGoAccount, onGoCommunityCreate, onSecretAdminTap }) {
   const { state } = useGame()
   const Screen = SCREENS[state.screen] ?? HomeScreen
-  return <Screen onGoOnline={onGoOnline} onGoAccount={onGoAccount} onGoCommunityCreate={onGoCommunityCreate} />
+  return (
+    <Screen
+      onGoOnline={onGoOnline}
+      onGoAccount={onGoAccount}
+      onGoCommunityCreate={onGoCommunityCreate}
+      onSecretAdminTap={onSecretAdminTap}
+    />
+  )
 }
 
 function AccountRouter({ onExit }) {
   const { user, isLoadingSession } = useAuth()
-  const [view, setView] = useState('profile') // 'profile' | 'moderation' | 'admin-content'
   if (isLoadingSession) return null
-  if (!user) return <SignInScreen onBack={onExit} />
-  if (view === 'moderation') return <AdminModerationScreen onBack={() => setView('profile')} />
-  if (view === 'admin-content') return <AdminContentScreen onBack={() => setView('profile')} />
-  return (
-    <ProfileScreen
-      onBack={onExit}
-      onGoModeration={() => setView('moderation')}
-      onGoAdminContent={() => setView('admin-content')}
-    />
-  )
+  return user ? <ProfileScreen onBack={onExit} /> : <SignInScreen onBack={onExit} />
 }
 
 function CommunityRouter({ onExit }) {
@@ -76,7 +75,7 @@ function useGlobalTapFeedback() {
 }
 
 function AppShell() {
-  const [mode, setMode] = useState('local') // 'local' | 'online' | 'account' | 'community' | 'community-create'
+  const [mode, setMode] = useState('local') // 'local' | 'online' | 'account' | 'community' | 'community-create' | 'admin-gate' | 'admin-menu' | 'admin-content' | 'admin-moderation'
   useGlobalTapFeedback()
 
   return (
@@ -86,11 +85,22 @@ function AppShell() {
       {mode === 'account' && <AccountRouter onExit={() => setMode('local')} />}
       {mode === 'community' && <CommunityRouter onExit={() => setMode('local')} />}
       {mode === 'community-create' && <CreateCommunityCardScreen onBack={() => setMode('local')} />}
+      {mode === 'admin-gate' && <AdminGateScreen onSuccess={() => setMode('admin-menu')} onCancel={() => setMode('local')} />}
+      {mode === 'admin-menu' && (
+        <AdminMenuScreen
+          onGoContent={() => setMode('admin-content')}
+          onGoModeration={() => setMode('admin-moderation')}
+          onExit={() => setMode('local')}
+        />
+      )}
+      {mode === 'admin-content' && <AdminContentScreen onBack={() => setMode('admin-menu')} />}
+      {mode === 'admin-moderation' && <AdminModerationScreen onBack={() => setMode('admin-menu')} />}
       {mode === 'local' && (
         <LocalRouter
           onGoOnline={() => setMode('online')}
           onGoAccount={() => setMode('account')}
           onGoCommunityCreate={() => setMode('community-create')}
+          onSecretAdminTap={() => setMode('admin-gate')}
         />
       )}
     </>
