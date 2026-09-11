@@ -7,8 +7,8 @@
 export const TESTING_UNLOCK_PREMIUM = true
 
 // Contraseña para el panel admin oculto (se activa tocando el dado 7 veces
-// seguidas en la pantalla de inicio). Solo sirve para REVELAR el acceso en
-// la app — la escritura real en la base de datos sigue protegida aparte por
-// Supabase (is_admin=true en el perfil), así que cambiar esta contraseña no
-// le da permisos a nadie por sí sola. Cambiala cuando quieras avisándome.
-export const ADMIN_PANEL_PASSWORD = 'vor-admin-2026'
+// seguidas en la pantalla de inicio). Esta contraseña es la ÚNICA barrera de
+// acceso — ya no depende de tener una cuenta marcada is_admin en Supabase
+// (ver supabase-schema-admin-cards.sql, que también se simplificó acorde).
+// Cambiala cuando quieras avisándome.
+export const ADMIN_PANEL_PASSWORD = 'lcR2IlSojf3GpVxJ0O6ynTf8EorR'
