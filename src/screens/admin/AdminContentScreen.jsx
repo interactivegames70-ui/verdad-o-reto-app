@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { LEVELS } from '../../data/content'
-import { fetchAllAdminCards, addAdminCard, updateAdminCard, deleteAdminCard } from '../../lib/adminCards'
+import { fetchAllAdminCards, addAdminCard, updateAdminCard, deleteAdminCard, bulkAddAdminCards } from '../../lib/adminCards'
+import { parseCardsZip } from '../../lib/docxZipImport'
 
 const EMPTY_FORM = { type: 'truth', level: 1, modality: 'ambas', groupMode: 'ambas', text: '', timerSeconds: 30 }
 
@@ -11,6 +12,10 @@ export default function AdminContentScreen({ onBack }) {
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [filterLevel, setFilterLevel] = useState('all')
+  const [importPreview, setImportPreview] = useState(null) // { cards, skipped } | null
+  const [importing, setImporting] = useState(false)
+  const [parsingZip, setParsingZip] = useState(false)
+  const [importResult, setImportResult] = useState(null)
 
   async function load() {
     setLoading(true)
@@ -74,7 +79,37 @@ export default function AdminContentScreen({ onBack }) {
     load()
   }
 
+  async function handleZipSelected(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a elegir el mismo archivo si hace falta
+    if (!file) return
+    setParsingZip(true)
+    setImportResult(null)
+    try {
+      const { cards: parsed, skipped } = await parseCardsZip(file)
+      setImportPreview({ cards: parsed, skipped })
+    } catch (err) {
+      setImportResult({ error: 'No se pudo leer el archivo. ¿Es un .zip válido?' })
+    }
+    setParsingZip(false)
+  }
+
+  async function confirmImport() {
+    if (!importPreview || importing) return
+    setImporting(true)
+    const { inserted, error } = await bulkAddAdminCards(importPreview.cards)
+    setImporting(false)
+    setImportPreview(null)
+    setImportResult({ inserted, error: error?.message ?? null })
+    load()
+  }
+
+  function cancelImport() {
+    setImportPreview(null)
+  }
+
   const visibleCards = filterLevel === 'all' ? cards : cards.filter((c) => c.level === Number(filterLevel))
+
 
   return (
     <div className="screen">
@@ -92,6 +127,50 @@ export default function AdminContentScreen({ onBack }) {
         <p className="subtitle" style={{ marginTop: 6 }}>
           Estas cartas se suman siempre al banco del juego, para todos.
         </p>
+      </div>
+
+      <div className="card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <p className="label" style={{ fontSize: 15 }}>
+          Importar desde .zip
+        </p>
+        <p className="subtitle" style={{ fontSize: 13 }}>
+          Subí un .zip con archivos .docx nombrados igual que siempre: "Reto - Nivel 2 (Modo presencial).docx",
+          "Verdad - Nivel 3.docx", etc. Se agregan como una carta por línea.
+        </p>
+        <label className="btn btn-secondary btn-block" style={{ textAlign: 'center', cursor: 'pointer' }}>
+          {parsingZip ? 'Leyendo el .zip…' : 'Elegir archivo .zip'}
+          <input type="file" accept=".zip" onChange={handleZipSelected} disabled={parsingZip} style={{ display: 'none' }} />
+        </label>
+
+        {importResult && (
+          <p className="subtitle" style={{ color: importResult.error ? 'var(--accent-pink)' : 'var(--accent-yellow)' }}>
+            {importResult.error
+              ? `Error: ${importResult.error}`
+              : `✓ Se importaron ${importResult.inserted} cartas.`}
+          </p>
+        )}
+
+        {importPreview && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p className="subtitle">
+              Se encontraron <strong>{importPreview.cards.length}</strong> cartas para importar.
+              {importPreview.skipped.length > 0 && (
+                <>
+                  <br />
+                  ⚠️ No se pudieron clasificar {importPreview.skipped.length} archivo(s): {importPreview.skipped.join(', ')}
+                </>
+              )}
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={cancelImport} disabled={importing}>
+                Cancelar
+              </button>
+              <button className="btn btn-yellow" style={{ flex: 1 }} onClick={confirmImport} disabled={importing}>
+                {importing ? 'Importando…' : `Confirmar (${importPreview.cards.length})`}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

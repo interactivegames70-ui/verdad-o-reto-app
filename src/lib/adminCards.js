@@ -37,6 +37,28 @@ export async function deleteAdminCard(id) {
   return supabase.from('admin_cards').delete().eq('id', id)
 }
 
+export async function bulkAddAdminCards(cards) {
+  const rows = cards.map((c) => ({
+    type: c.type,
+    level: c.level,
+    modality: c.modality,
+    group_mode: c.groupMode,
+    text: c.text,
+    timer_seconds: c.timerSeconds ?? null,
+  }))
+  // Supabase/PostgREST no tiene un límite chico documentado, pero se manda en
+  // lotes para evitar payloads gigantes de una sola vez.
+  const chunkSize = 200
+  let inserted = 0
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize)
+    const { error } = await supabase.from('admin_cards').insert(chunk)
+    if (error) return { inserted, error }
+    inserted += chunk.length
+  }
+  return { inserted, error: null }
+}
+
 // Convierte una fila de la tabla al formato que pickCard() espera (mismo shape que las community cards).
 export function mapAdminCard(c) {
   return {
