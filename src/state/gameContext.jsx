@@ -23,6 +23,7 @@ const initialState = {
   statsThisGame: { truths: 0, daresCompleted: 0, daresFailed: 0 },
   communityEnabled: false,
   communityCards: [], // cartas aprobadas de la comunidad, cargadas al activar el toggle
+  adminCards: [], // cartas oficiales agregadas por un admin; se suman siempre, para todos
   communityMode: false, // true cuando se entró por "Contenido de la comunidad" desde Home
 }
 
@@ -75,6 +76,8 @@ function reducer(state, action) {
       return { ...state, communityEnabled: action.enabled, communityCards: action.enabled ? state.communityCards : [] }
     case 'SET_COMMUNITY_CARDS':
       return { ...state, communityCards: action.cards }
+    case 'SET_ADMIN_CARDS':
+      return { ...state, adminCards: action.cards }
     case 'START_GAME':
       return {
         ...state,
@@ -104,7 +107,7 @@ function reducer(state, action) {
         modality: state.modality,
         group: state.group,
         history: state.cardHistory,
-        customCards: [...state.customCards, ...(state.communityEnabled ? state.communityCards : [])],
+        customCards: [...state.customCards, ...state.adminCards, ...(state.communityEnabled ? state.communityCards : [])],
         otherPlayerNames: state.players.filter((p) => p.id !== state.currentPlayerId).map((p) => p.name),
       })
       return { ...state, level: action.level, card }
@@ -116,7 +119,7 @@ function reducer(state, action) {
         modality: state.modality,
         group: state.group,
         history: state.cardHistory,
-        customCards: [...state.customCards, ...(state.communityEnabled ? state.communityCards : [])],
+        customCards: [...state.customCards, ...state.adminCards, ...(state.communityEnabled ? state.communityCards : [])],
         otherPlayerNames: state.players.filter((p) => p.id !== state.currentPlayerId).map((p) => p.name),
       })
       return { ...state, card }

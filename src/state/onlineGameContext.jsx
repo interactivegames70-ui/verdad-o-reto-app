@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { getClientId } from '../lib/clientId'
 import { pickCard } from '../data/content'
 import { fetchApprovedCards } from '../lib/community'
+import { fetchAdminCardsFor, mapAdminCard } from '../lib/adminCards'
 
 const OnlineGameContext = createContext(null)
 
@@ -21,6 +22,7 @@ const emptyGameState = {
   cardHistory: [],
   communityEnabled: false,
   communityCards: [], // cartas aprobadas de la comunidad, cargadas al activar el toggle
+  adminCards: [], // cartas oficiales agregadas por un admin; se suman siempre, para todos
   customCards: [], // { id, type: 'truth'|'dare', level, text, timerSeconds } — agregadas por el anfitrión, para esta sala
 }
 
@@ -97,7 +99,8 @@ export function OnlineGameProvider({ children }) {
     setError(null)
     let code = makeRoomCode()
     let insertedRoom = null
-    let initialState = emptyGameState
+    const { data: adminData } = await fetchAdminCardsFor({ group, modality })
+    let initialState = { ...emptyGameState, adminCards: adminData.map(mapAdminCard) }
     if (communityMode) {
       const { data } = await fetchApprovedCards({ group, modality })
       const mapped = data.map((c) => ({
@@ -109,7 +112,7 @@ export function OnlineGameProvider({ children }) {
         text: c.text,
         timerSeconds: c.timer_seconds ?? undefined,
       }))
-      initialState = { ...emptyGameState, communityEnabled: true, communityCards: mapped }
+      initialState = { ...initialState, communityEnabled: true, communityCards: mapped }
     }
     for (let attempt = 0; attempt < 5 && !insertedRoom; attempt++) {
       const { data, error: insertError } = await supabase
@@ -225,6 +228,7 @@ export function OnlineGameProvider({ children }) {
           turnQueue: shuffledIds(ids),
           communityEnabled: gameState.communityEnabled,
           communityCards: gameState.communityCards,
+          adminCards: gameState.adminCards,
           customCards: gameState.customCards,
         },
       })
@@ -293,7 +297,7 @@ export function OnlineGameProvider({ children }) {
       modality: room.modality,
       group: room.group_mode,
       history: gameState.cardHistory,
-      customCards: [...gameState.customCards, ...(gameState.communityEnabled ? gameState.communityCards : [])],
+      customCards: [...gameState.customCards, ...gameState.adminCards, ...(gameState.communityEnabled ? gameState.communityCards : [])],
       otherPlayerNames: players.filter((p) => p.client_id !== gameState.currentPlayerId).map((p) => p.name),
     })
     await updateState({ level, card })
@@ -307,7 +311,7 @@ export function OnlineGameProvider({ children }) {
       modality: room.modality,
       group: room.group_mode,
       history: gameState.cardHistory,
-      customCards: [...gameState.customCards, ...(gameState.communityEnabled ? gameState.communityCards : [])],
+      customCards: [...gameState.customCards, ...gameState.adminCards, ...(gameState.communityEnabled ? gameState.communityCards : [])],
       otherPlayerNames: players.filter((p) => p.client_id !== gameState.currentPlayerId).map((p) => p.name),
     })
     await updateState({ card })

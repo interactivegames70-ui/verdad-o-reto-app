@@ -18,6 +18,7 @@ import ProfileScreen from './screens/account/ProfileScreen'
 import CommunityScreen from './screens/community/CommunityScreen'
 import CreateCommunityCardScreen from './screens/community/CreateCommunityCardScreen'
 import AdminModerationScreen from './screens/community/AdminModerationScreen'
+import AdminContentScreen from './screens/admin/AdminContentScreen'
 
 const SCREENS = {
   home: HomeScreen,
@@ -38,8 +39,18 @@ function LocalRouter({ onGoOnline, onGoAccount, onGoCommunityCreate }) {
 
 function AccountRouter({ onExit }) {
   const { user, isLoadingSession } = useAuth()
+  const [view, setView] = useState('profile') // 'profile' | 'moderation' | 'admin-content'
   if (isLoadingSession) return null
-  return user ? <ProfileScreen onBack={onExit} /> : <SignInScreen onBack={onExit} />
+  if (!user) return <SignInScreen onBack={onExit} />
+  if (view === 'moderation') return <AdminModerationScreen onBack={() => setView('profile')} />
+  if (view === 'admin-content') return <AdminContentScreen onBack={() => setView('profile')} />
+  return (
+    <ProfileScreen
+      onBack={onExit}
+      onGoModeration={() => setView('moderation')}
+      onGoAdminContent={() => setView('admin-content')}
+    />
+  )
 }
 
 function CommunityRouter({ onExit }) {

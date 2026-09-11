@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useGame } from '../state/gameContext'
 import { fetchApprovedCards } from '../lib/community'
+import { fetchAdminCardsFor, mapAdminCard } from '../lib/adminCards'
 
 const MIN_PLAYERS = { pareja: 2, grupo: 3 }
 
@@ -9,6 +10,21 @@ export default function PlayersScreen({ onGoCommunityCreate }) {
   const [name, setName] = useState('')
   const min = MIN_PLAYERS[state.group] ?? 2
   const max = state.group === 'pareja' ? 2 : 12
+
+  // El contenido oficial agregado por un admin se suma siempre, para todos,
+  // sin depender del modo "Contenido de la comunidad".
+  useEffect(() => {
+    let cancelled = false
+    async function loadAdminCards() {
+      const { data } = await fetchAdminCardsFor({ group: state.group, modality: state.modality })
+      if (!cancelled) dispatch({ type: 'SET_ADMIN_CARDS', cards: data.map(mapAdminCard) })
+    }
+    loadAdminCards()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // En modo "Contenido de la comunidad" activamos las cartas de la comunidad
   // automáticamente, sin necesidad de un interruptor manual.
