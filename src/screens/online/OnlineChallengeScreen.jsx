@@ -5,9 +5,11 @@ import { LEVELS } from '../../data/content'
 import { TESTING_UNLOCK_PREMIUM } from '../../config'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../../lib/sound'
 import { vibrate } from '../../lib/haptics'
+import ExitGameButton from '../../components/ExitGameButton'
 
 export default function OnlineChallengeScreen() {
-  const { players, gameState, isHost, isMyTurn, chooseType, selectLevel, redrawCard, setFulfilled, nextTurn } = useOnlineGame()
+  const { players, gameState, isHost, isMyTurn, chooseType, selectLevel, redrawCard, setFulfilled, nextTurn, leaveRoom } =
+    useOnlineGame()
   const { profile } = useAuth()
   const isPremium = TESTING_UNLOCK_PREMIUM || profile?.is_premium === true
   const [premiumMessage, setPremiumMessage] = useState(false)
@@ -51,6 +53,7 @@ export default function OnlineChallengeScreen() {
         <span className="progress-pill">
           {player.name} · {player.score} pts
         </span>
+        <ExitGameButton onExit={leaveRoom} />
       </div>
 
       <div style={{ textAlign: 'center' }}>

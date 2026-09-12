@@ -156,6 +156,20 @@ function reducer(state, action) {
         ...initialState,
         screen: 'setup',
       }
+    case 'EXIT_TO_PLAYERS':
+      return {
+        ...state,
+        screen: 'players',
+        roundIndex: 0,
+        totalRounds: 0,
+        turnQueue: [],
+        currentPlayerId: null,
+        choice: null,
+        level: null,
+        card: null,
+        cardHistory: [],
+        statsThisGame: { truths: 0, daresCompleted: 0, daresFailed: 0 },
+      }
     case 'GO_HOME':
       return { ...initialState }
     default:

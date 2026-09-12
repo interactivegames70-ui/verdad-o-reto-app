@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useOnlineGame } from '../../state/onlineGameContext'
 import Confetti from '../../components/Confetti'
+import ExitGameButton from '../../components/ExitGameButton'
 import { playTick, playLand } from '../../lib/sound'
 import { vibrate } from '../../lib/haptics'
 
@@ -36,7 +37,7 @@ function easeOutQuint(t) {
 }
 
 export default function OnlineRouletteScreen() {
-  const { players, gameState, isHost, spinResult } = useOnlineGame()
+  const { players, gameState, isHost, spinResult, leaveRoom } = useOnlineGame()
   const names = players.map((p) => p.name)
 
   const viewportRef = useRef(null)
@@ -151,10 +152,11 @@ export default function OnlineRouletteScreen() {
 
   return (
     <div className="screen" style={{ padding: '20px 0 28px', gap: 12 }}>
-      <div style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
         <span className="progress-pill">
           Ronda {gameState.roundIndex + 1} de {gameState.totalRounds}
         </span>
+        <ExitGameButton onExit={leaveRoom} />
       </div>
 
       {justLanded && <Confetti count={50} />}

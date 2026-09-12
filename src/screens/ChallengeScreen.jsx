@@ -3,6 +3,7 @@ import { useGame } from '../state/gameContext'
 import { useAuth } from '../state/authContext'
 import { LEVELS } from '../data/content'
 import { TESTING_UNLOCK_PREMIUM } from '../config'
+import ExitGameButton from '../components/ExitGameButton'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
 
@@ -51,6 +52,7 @@ export default function ChallengeScreen() {
         <span className="progress-pill">
           {player.name} · {player.score} pts
         </span>
+        <ExitGameButton onExit={() => dispatch({ type: 'EXIT_TO_PLAYERS' })} />
       </div>
 
       <div style={{ textAlign: 'center' }}>

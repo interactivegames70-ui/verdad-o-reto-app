@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useGame } from '../state/gameContext'
 import Confetti from '../components/Confetti'
+import ExitGameButton from '../components/ExitGameButton'
 import { playTick, playLand } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
 
@@ -152,10 +153,11 @@ export default function RouletteScreen() {
 
   return (
     <div className="screen" style={{ padding: '20px 0 28px', gap: 12 }}>
-      <div style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
         <span className="progress-pill">
           Ronda {state.roundIndex + 1} de {state.totalRounds}
         </span>
+        <ExitGameButton onExit={() => dispatch({ type: 'EXIT_TO_PLAYERS' })} />
       </div>
 
       {justLanded && <Confetti count={50} />}
