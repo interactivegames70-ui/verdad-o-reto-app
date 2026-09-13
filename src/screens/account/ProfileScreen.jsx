@@ -1,5 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth, AVATAR_EMOJIS, AVATAR_COLORS } from '../../state/authContext'
+import { fetchMyCards } from '../../lib/community'
+
+const TYPE_LABEL = { truth: 'Verdad', dare: 'Reto' }
+const STATUS_INFO = {
+  pending: { label: 'Pendiente de revisión', color: 'var(--accent-yellow)' },
+  approved: { label: 'Aprobada', color: '#4ade80' },
+  rejected: { label: 'No aprobada', color: 'var(--accent-pink)' },
+}
 
 export default function ProfileScreen({ onBack }) {
   const { profile, loadingProfile, updateProfile, signOut } = useAuth()
@@ -8,6 +16,23 @@ export default function ProfileScreen({ onBack }) {
   const [color, setColor] = useState(profile?.avatar_color ?? AVATAR_COLORS[0])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [myCards, setMyCards] = useState([])
+  const [loadingCards, setLoadingCards] = useState(true)
+
+  useEffect(() => {
+    if (!profile?.id) return
+    let cancelled = false
+    setLoadingCards(true)
+    fetchMyCards(profile.id).then(({ data }) => {
+      if (!cancelled) {
+        setMyCards(data)
+        setLoadingCards(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [profile?.id])
 
   if (loadingProfile || !profile) {
     return (
@@ -27,14 +52,6 @@ export default function ProfileScreen({ onBack }) {
     setSaved(true)
     setTimeout(() => setSaved(false), 1800)
   }
-
-  const stats = [
-    { label: 'Partidas jugadas', value: profile.games_played },
-    { label: 'Verdades respondidas', value: profile.truths_answered },
-    { label: 'Retos cumplidos', value: profile.dares_completed },
-    { label: 'Retos no cumplidos', value: profile.dares_failed },
-    { label: 'Puntos acumulados', value: profile.points_total },
-  ]
 
   return (
     <div className="screen">
@@ -116,18 +133,38 @@ export default function ProfileScreen({ onBack }) {
       </button>
 
       <div>
-        <p className="subtitle" style={{ marginBottom: 10 }}>Estadísticas</p>
+        <p className="subtitle" style={{ marginBottom: 10 }}>
+          Mis contribuciones a la comunidad{myCards.length > 0 ? ` (${myCards.length})` : ''}
+        </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="card"
-              style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-            >
-              <span className="label" style={{ fontSize: 14 }}>{s.label}</span>
-              <span style={{ fontWeight: 700, color: 'var(--accent-yellow)' }}>{s.value}</span>
-            </div>
-          ))}
+          {loadingCards && (
+            <p className="subtitle" style={{ textAlign: 'center' }}>Cargando…</p>
+          )}
+          {!loadingCards && myCards.length === 0 && (
+            <p className="subtitle" style={{ textAlign: 'center' }}>
+              Todavía no subiste ninguna pregunta o reto a la comunidad.
+            </p>
+          )}
+          {myCards.map((c) => {
+            const status = STATUS_INFO[c.status] ?? STATUS_INFO.pending
+            return (
+              <div key={c.id} className="card" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13.5 }}>
+                  <strong>{TYPE_LABEL[c.type]} · N{c.level}</strong>
+                  <br />
+                  {c.text}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: status.color }}>{status.label}</span>
+                  {c.status === 'approved' && (
+                    <span className="subtitle" style={{ fontSize: 12 }}>
+                      ❤️ {c.likes_count} · usada {c.uses_count} veces
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
