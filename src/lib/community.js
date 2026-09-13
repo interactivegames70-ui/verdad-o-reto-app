@@ -31,6 +31,17 @@ export async function fetchMyLikedCardIds(userId) {
   return new Set((data ?? []).map((r) => r.card_id))
 }
 
+export async function hasLikedCard(cardId, userId) {
+  if (!cardId || !userId) return false
+  const { data } = await supabase
+    .from('community_card_likes')
+    .select('card_id')
+    .eq('card_id', cardId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!data
+}
+
 export async function submitCard({ authorId, type, level, groupMode, modality, text, timerSeconds }) {
   return supabase
     .from('community_cards')

@@ -6,16 +6,44 @@ import { TESTING_UNLOCK_PREMIUM } from '../../config'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../../lib/sound'
 import { vibrate } from '../../lib/haptics'
 import ExitGameButton from '../../components/ExitGameButton'
+import { toggleCardLike, hasLikedCard } from '../../lib/community'
 
-export default function OnlineChallengeScreen() {
+export default function OnlineChallengeScreen({ onGoAccount }) {
   const { players, gameState, isHost, isMyTurn, chooseType, selectLevel, redrawCard, setFulfilled, nextTurn, leaveRoom } =
     useOnlineGame()
-  const { profile } = useAuth()
+  const { user, profile } = useAuth()
   const isPremium = TESTING_UNLOCK_PREMIUM || profile?.is_premium === true
   const [premiumMessage, setPremiumMessage] = useState(false)
   const player = players.find((p) => p.client_id === gameState.currentPlayerId)
   const [timeLeft, setTimeLeft] = useState(null)
   const [timerRunning, setTimerRunning] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [likeBusy, setLikeBusy] = useState(false)
+  const communityId = gameState.card?.communityId
+
+  useEffect(() => {
+    setLiked(false)
+    if (!communityId || !user) return
+    let cancelled = false
+    hasLikedCard(communityId, user.id).then((v) => {
+      if (!cancelled) setLiked(v)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [communityId, user])
+
+  async function handleLike() {
+    if (!user) {
+      onGoAccount?.()
+      return
+    }
+    if (likeBusy || !communityId) return
+    setLikeBusy(true)
+    const { liked: newLiked, error } = await toggleCardLike(communityId)
+    if (!error) setLiked(!!newLiked)
+    setLikeBusy(false)
+  }
 
   useEffect(() => {
     setTimeLeft(null)
@@ -150,9 +178,21 @@ export default function OnlineChallengeScreen() {
             className="card card-reveal"
             style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, minHeight: 180 }}
           >
-            <span className="eyebrow">
-              {gameState.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {gameState.level}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="eyebrow">
+                {gameState.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {gameState.level}
+              </span>
+              {communityId && (
+                <button
+                  onClick={handleLike}
+                  disabled={likeBusy}
+                  aria-label={liked ? 'Quitar like' : 'Dar like'}
+                  style={{ background: 'none', border: 'none', padding: 6, fontSize: 20 }}
+                >
+                  {liked ? '❤️' : '🤍'}
+                </button>
+              )}
+            </div>
             <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{gameState.card.text}</p>
           </div>
 

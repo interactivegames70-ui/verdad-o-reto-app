@@ -81,7 +81,7 @@ function AppShell() {
   return (
     <>
       <BackgroundBlobs />
-      {mode === 'online' && <OnlineGameScreen onExit={() => setMode('local')} />}
+      {mode === 'online' && <OnlineGameScreen onExit={() => setMode('local')} onGoAccount={() => setMode('account')} />}
       {mode === 'account' && <AccountRouter onExit={() => setMode('local')} />}
       {mode === 'community' && <CommunityRouter onExit={() => setMode('local')} />}
       {mode === 'community-create' && <CreateCommunityCardScreen onBack={() => setMode('local')} />}

@@ -44,6 +44,10 @@ export default function ProfileScreen({ onBack }) {
 
   const dirty = name.trim() !== profile.username || emoji !== profile.avatar_emoji || color !== profile.avatar_color
 
+  const truthsUploaded = myCards.filter((c) => c.type === 'truth').length
+  const daresUploaded = myCards.filter((c) => c.type === 'dare').length
+  const likesReceived = myCards.reduce((sum, c) => sum + (c.likes_count || 0), 0)
+
   async function handleSave() {
     if (!name.trim() || saving) return
     setSaving(true)
@@ -136,6 +140,22 @@ export default function ProfileScreen({ onBack }) {
         <p className="subtitle" style={{ marginBottom: 10 }}>
           Mis contribuciones a la comunidad{myCards.length > 0 ? ` (${myCards.length})` : ''}
         </p>
+        {!loadingCards && myCards.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <div className="card" style={{ flex: 1, padding: '10px 12px', textAlign: 'center' }}>
+              <div style={{ fontWeight: 700, color: 'var(--accent-yellow)' }}>❤️ {likesReceived}</div>
+              <div className="subtitle" style={{ fontSize: 11 }}>Likes recibidos</div>
+            </div>
+            <div className="card" style={{ flex: 1, padding: '10px 12px', textAlign: 'center' }}>
+              <div style={{ fontWeight: 700, color: 'var(--accent-yellow)' }}>🗣️ {truthsUploaded}</div>
+              <div className="subtitle" style={{ fontSize: 11 }}>Preguntas subidas</div>
+            </div>
+            <div className="card" style={{ flex: 1, padding: '10px 12px', textAlign: 'center' }}>
+              <div style={{ fontWeight: 700, color: 'var(--accent-yellow)' }}>🔥 {daresUploaded}</div>
+              <div className="subtitle" style={{ fontSize: 11 }}>Retos subidos</div>
+            </div>
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {loadingCards && (
             <p className="subtitle" style={{ textAlign: 'center' }}>Cargando…</p>

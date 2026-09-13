@@ -10,7 +10,7 @@ import OnlineRouletteScreen from './online/OnlineRouletteScreen'
 import OnlineChallengeScreen from './online/OnlineChallengeScreen'
 import OnlineResultsScreen from './online/OnlineResultsScreen'
 
-function OnlineRouter({ onExit }) {
+function OnlineRouter({ onExit, onGoAccount }) {
   const { status, room, gameState } = useOnlineGame()
 
   if (status === 'home' || status === 'error') return <OnlineHomeScreen onExit={onExit} />
@@ -21,7 +21,7 @@ function OnlineRouter({ onExit }) {
   if (status === 'custom') return <OnlineCustomContentScreen />
 
   if (status === 'playing' && room) {
-    if (gameState.screen === 'challenge') return <OnlineChallengeScreen />
+    if (gameState.screen === 'challenge') return <OnlineChallengeScreen onGoAccount={onGoAccount} />
     if (gameState.screen === 'results') return <OnlineResultsScreen />
     return <OnlineRouletteScreen />
   }
@@ -29,11 +29,11 @@ function OnlineRouter({ onExit }) {
   return <OnlineHomeScreen onExit={onExit} />
 }
 
-export default function OnlineGameScreen({ onExit }) {
+export default function OnlineGameScreen({ onExit, onGoAccount }) {
   return (
     <OnlineGameProvider>
       <InitialStatus />
-      <OnlineRouter onExit={onExit} />
+      <OnlineRouter onExit={onExit} onGoAccount={onGoAccount} />
     </OnlineGameProvider>
   )
 }
