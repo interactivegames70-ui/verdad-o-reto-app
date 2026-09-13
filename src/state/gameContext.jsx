@@ -61,7 +61,11 @@ function reducer(state, action) {
         customCards: loadSavedCustomCards(),
       }
     case 'SET_GROUP':
-      return { ...state, group: action.group }
+      return {
+        ...state,
+        group: action.group,
+        players: makePlayersFromNames(loadSavedPlayerNames(action.group)),
+      }
     case 'SET_MODALITY':
       return { ...state, modality: action.modality, screen: 'players' }
     case 'ADD_PLAYER': {
@@ -69,12 +73,12 @@ function reducer(state, action) {
       if (!name) return state
       const id = Date.now() + Math.random()
       const players = [...state.players, { id, name, score: 0 }]
-      saveSavedPlayerNames(players.map((p) => p.name))
+      saveSavedPlayerNames(players.map((p) => p.name), state.group)
       return { ...state, players }
     }
     case 'REMOVE_PLAYER': {
       const players = state.players.filter((p) => p.id !== action.id)
-      saveSavedPlayerNames(players.map((p) => p.name))
+      saveSavedPlayerNames(players.map((p) => p.name), state.group)
       return { ...state, players }
     }
     case 'GO_CUSTOM':
