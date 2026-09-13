@@ -1,6 +1,13 @@
 import { createContext, useContext, useReducer } from 'react'
 import { pickCard } from '../data/content'
 import { incrementCardUses } from '../lib/community'
+import {
+  loadSavedPlayerNames,
+  saveSavedPlayerNames,
+  makePlayersFromNames,
+  loadSavedCustomCards,
+  saveSavedCustomCards,
+} from '../lib/localGameData'
 
 const GameContext = createContext(null)
 
@@ -10,8 +17,8 @@ const initialState = {
   screen: 'home', // home | setup | players | custom | roulette | challenge | results
   group: null, // 'pareja' | 'grupo'
   modality: null, // 'presencial' | 'distancia'
-  players: [], // { id, name, score }
-  customCards: [], // { id, type: 'truth'|'dare', level, text, timerSeconds }
+  players: makePlayersFromNames(loadSavedPlayerNames()), // { id, name, score }
+  customCards: loadSavedCustomCards(), // { id, type: 'truth'|'dare', level, text, timerSeconds }
   totalRounds: 0,
   roundIndex: 0,
   turnQueue: [], // ids pendientes en el ciclo actual, para repartir turnos parejo
@@ -39,9 +46,20 @@ function shuffledIds(players) {
 function reducer(state, action) {
   switch (action.type) {
     case 'GO_CONTENT_CHOICE':
-      return { ...initialState, screen: 'content-choice' }
+      return {
+        ...initialState,
+        screen: 'content-choice',
+        players: makePlayersFromNames(loadSavedPlayerNames()),
+        customCards: loadSavedCustomCards(),
+      }
     case 'GO_SETUP':
-      return { ...initialState, screen: 'setup', communityMode: !!action.communityMode }
+      return {
+        ...initialState,
+        screen: 'setup',
+        communityMode: !!action.communityMode,
+        players: makePlayersFromNames(loadSavedPlayerNames()),
+        customCards: loadSavedCustomCards(),
+      }
     case 'SET_GROUP':
       return { ...state, group: action.group }
     case 'SET_MODALITY':
@@ -50,10 +68,15 @@ function reducer(state, action) {
       const name = action.name.trim()
       if (!name) return state
       const id = Date.now() + Math.random()
-      return { ...state, players: [...state.players, { id, name, score: 0 }] }
+      const players = [...state.players, { id, name, score: 0 }]
+      saveSavedPlayerNames(players.map((p) => p.name))
+      return { ...state, players }
     }
-    case 'REMOVE_PLAYER':
-      return { ...state, players: state.players.filter((p) => p.id !== action.id) }
+    case 'REMOVE_PLAYER': {
+      const players = state.players.filter((p) => p.id !== action.id)
+      saveSavedPlayerNames(players.map((p) => p.name))
+      return { ...state, players }
+    }
     case 'GO_CUSTOM':
       return { ...state, screen: 'custom' }
     case 'BACK_TO_PLAYERS':
@@ -68,10 +91,15 @@ function reducer(state, action) {
         text,
         timerSeconds: action.cardType === 'dare' ? action.timerSeconds || 30 : undefined,
       }
-      return { ...state, customCards: [...state.customCards, card] }
+      const customCards = [...state.customCards, card]
+      saveSavedCustomCards(customCards)
+      return { ...state, customCards }
     }
-    case 'REMOVE_CUSTOM_CARD':
-      return { ...state, customCards: state.customCards.filter((c) => c.id !== action.id) }
+    case 'REMOVE_CUSTOM_CARD': {
+      const customCards = state.customCards.filter((c) => c.id !== action.id)
+      saveSavedCustomCards(customCards)
+      return { ...state, customCards }
+    }
     case 'SET_COMMUNITY_ENABLED':
       return { ...state, communityEnabled: action.enabled, communityCards: action.enabled ? state.communityCards : [] }
     case 'SET_COMMUNITY_CARDS':
@@ -171,7 +199,11 @@ function reducer(state, action) {
         statsThisGame: { truths: 0, daresCompleted: 0, daresFailed: 0 },
       }
     case 'GO_HOME':
-      return { ...initialState }
+      return {
+        ...initialState,
+        players: makePlayersFromNames(loadSavedPlayerNames()),
+        customCards: loadSavedCustomCards(),
+      }
     default:
       return state
   }
