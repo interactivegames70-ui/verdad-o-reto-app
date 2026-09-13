@@ -4,6 +4,7 @@ import { getClientId } from '../lib/clientId'
 import { pickCard } from '../data/content'
 import { fetchApprovedCards } from '../lib/community'
 import { fetchAdminCardsFor, mapAdminCard } from '../lib/adminCards'
+import { loadSavedCustomCards } from '../lib/localGameData'
 
 const OnlineGameContext = createContext(null)
 
@@ -100,7 +101,9 @@ export function OnlineGameProvider({ children }) {
     let code = makeRoomCode()
     let insertedRoom = null
     const { data: adminData } = await fetchAdminCardsFor({ group, modality })
-    let initialState = { ...emptyGameState, adminCards: adminData.map(mapAdminCard) }
+    // El anfitrión ya puede tener retos/preguntas propios guardados de partidas locales;
+    // se llevan también a la sala online en vez de arrancar vacíos.
+    let initialState = { ...emptyGameState, adminCards: adminData.map(mapAdminCard), customCards: loadSavedCustomCards() }
     if (communityMode) {
       const { data } = await fetchApprovedCards({ group, modality })
       const mapped = data.map((c) => ({
