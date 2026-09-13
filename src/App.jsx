@@ -52,11 +52,13 @@ function AccountRouter({ onExit, profileTarget, onClearTarget }) {
   const { user, isLoadingSession } = useAuth()
   const [view, setView] = useState('own') // 'own' | 'search' | 'public' | 'signin'
   const [viewedUserId, setViewedUserId] = useState(null)
+  const [viaExternal, setViaExternal] = useState(false) // true = se llegó desde fuera de la sección de cuenta (comunidad, partida)
   const [returnView, setReturnView] = useState('own')
 
   useEffect(() => {
     if (profileTarget) {
       setViewedUserId(profileTarget)
+      setViaExternal(true)
       setView('public')
     }
   }, [profileTarget])
@@ -73,6 +75,7 @@ function AccountRouter({ onExit, profileTarget, onClearTarget }) {
         onBack={() => setView('own')}
         onOpenProfile={(id) => {
           setViewedUserId(id)
+          setViaExternal(false)
           setView('public')
         }}
       />
@@ -86,7 +89,11 @@ function AccountRouter({ onExit, profileTarget, onClearTarget }) {
         currentUserId={user?.id}
         onBack={() => {
           onClearTarget?.()
-          setView('own')
+          if (viaExternal) {
+            onExit()
+          } else {
+            setView('search')
+          }
         }}
         onRequireSignIn={() => {
           setReturnView('public')
@@ -140,9 +147,11 @@ function useGlobalTapFeedback() {
 function AppShell() {
   const [mode, setMode] = useState('local') // 'local' | 'online' | 'account' | 'community' | 'community-create' | 'admin-gate' | 'admin-menu' | 'admin-content' | 'admin-moderation'
   const [profileTarget, setProfileTarget] = useState(null)
+  const [returnMode, setReturnMode] = useState('local')
   useGlobalTapFeedback()
 
   function goAccount(userId) {
+    setReturnMode(mode)
     setProfileTarget(userId || null)
     setMode('account')
   }
@@ -153,7 +162,7 @@ function AppShell() {
       {mode === 'online' && <OnlineGameScreen onExit={() => setMode('local')} onGoAccount={goAccount} />}
       {mode === 'account' && (
         <AccountRouter
-          onExit={() => setMode('local')}
+          onExit={() => setMode(returnMode)}
           profileTarget={profileTarget}
           onClearTarget={() => setProfileTarget(null)}
         />
