@@ -90,29 +90,39 @@ export default function CommunityScreen({ onBack, onCreate, onModerate, onGoAcco
         )}
         {visible.map((c) => {
           const authorIsAnonymous = c.profiles?.is_anonymous !== false
-          const authorName = authorIsAnonymous ? 'Invitado' : c.profiles?.username ?? 'Jugador'
+          const authorName = c.profiles?.username ?? 'Jugador'
           return (
-            <div key={c.id} className="card" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: 13.5 }}>
-                <strong>{TYPE_LABEL[c.type]} · N{c.level}</strong>
-                <br />
-                {c.text}
-              </span>
+            <div key={c.id} className="card" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="subtitle" style={{ fontSize: 12 }}>
-                  Por{' '}
-                  {authorIsAnonymous ? (
-                    authorName
-                  ) : (
-                    <button
-                      onClick={() => onGoAccount?.(c.author_id)}
-                      style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-yellow)', fontWeight: 700 }}
-                    >
-                      {authorName}
-                    </button>
-                  )}
-                  {' · '}Usada {c.uses_count} veces
-                </span>
+                {authorIsAnonymous ? (
+                  <span
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#241546',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      padding: '4px 12px',
+                      borderRadius: 100,
+                    }}
+                  >
+                    Invitado
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => onGoAccount?.(c.author_id)}
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#241546',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      padding: '4px 12px',
+                      borderRadius: 100,
+                      border: 'none',
+                    }}
+                  >
+                    @{authorName}
+                  </button>
+                )}
                 {!authorIsAnonymous && (
                   <button
                     onClick={() => handleLike(c.id)}
@@ -124,6 +134,12 @@ export default function CommunityScreen({ onBack, onCreate, onModerate, onGoAcco
                   </button>
                 )}
               </div>
+              <span style={{ fontSize: 13.5 }}>
+                <strong>{TYPE_LABEL[c.type]} · N{c.level}</strong>
+                <br />
+                {c.text}
+              </span>
+              <span className="subtitle" style={{ fontSize: 11.5 }}>Usada {c.uses_count} veces</span>
             </div>
           )
         })}

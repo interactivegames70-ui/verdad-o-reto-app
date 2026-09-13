@@ -178,37 +178,53 @@ export default function OnlineChallengeScreen({ onGoAccount }) {
             className="card card-reveal"
             style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, minHeight: 180 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="eyebrow">
-                {gameState.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {gameState.level}
-              </span>
-              {communityId && !gameState.card.authorIsAnonymous && (
-                <button
-                  onClick={handleLike}
-                  disabled={likeBusy}
-                  aria-label={liked ? 'Quitar like' : 'Dar like'}
-                  style={{ background: 'none', border: 'none', padding: 6, fontSize: 20 }}
-                >
-                  {liked ? '❤️' : '🤍'}
-                </button>
-              )}
-            </div>
-            <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{gameState.card.text}</p>
             {communityId && gameState.card.authorName && (
-              <p className="subtitle" style={{ fontSize: 12, textAlign: 'right' }}>
-                Subido por{' '}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 {gameState.card.authorIsAnonymous ? (
-                  gameState.card.authorName
+                  <span
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#241546',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      padding: '5px 14px',
+                      borderRadius: 100,
+                    }}
+                  >
+                    Invitado
+                  </span>
                 ) : (
                   <button
                     onClick={() => onGoAccount?.(gameState.card.authorId)}
-                    style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-yellow)', fontWeight: 700 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#241546',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      padding: '5px 14px',
+                      borderRadius: 100,
+                      border: 'none',
+                    }}
                   >
-                    {gameState.card.authorName}
+                    @{gameState.card.authorName}
                   </button>
                 )}
-              </p>
+                {!gameState.card.authorIsAnonymous && (
+                  <button
+                    onClick={handleLike}
+                    disabled={likeBusy}
+                    aria-label={liked ? 'Quitar like' : 'Dar like'}
+                    style={{ background: 'none', border: 'none', padding: 6, fontSize: 22 }}
+                  >
+                    {liked ? '❤️' : '🤍'}
+                  </button>
+                )}
+              </div>
             )}
+            <span className="eyebrow">
+              {gameState.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {gameState.level}
+            </span>
+            <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{gameState.card.text}</p>
           </div>
 
           {gameState.choice === 'dare' && gameState.card.timerSeconds && (

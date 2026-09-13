@@ -166,35 +166,51 @@ export default function ChallengeScreen({ onGoAccount }) {
             className="card card-reveal"
             style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, minHeight: 180 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="eyebrow">{state.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {state.level}</span>
-              {communityId && !state.card.authorIsAnonymous && (
-                <button
-                  onClick={handleLike}
-                  disabled={likeBusy}
-                  aria-label={liked ? 'Quitar like' : 'Dar like'}
-                  style={{ background: 'none', border: 'none', padding: 6, fontSize: 20 }}
-                >
-                  {liked ? '❤️' : '🤍'}
-                </button>
-              )}
-            </div>
-            <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{state.card.text}</p>
             {communityId && state.card.authorName && (
-              <p className="subtitle" style={{ fontSize: 12, textAlign: 'right' }}>
-                Subido por{' '}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 {state.card.authorIsAnonymous ? (
-                  state.card.authorName
+                  <span
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#241546',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      padding: '5px 14px',
+                      borderRadius: 100,
+                    }}
+                  >
+                    Invitado
+                  </span>
                 ) : (
                   <button
                     onClick={() => onGoAccount?.(state.card.authorId)}
-                    style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-yellow)', fontWeight: 700 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#241546',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      padding: '5px 14px',
+                      borderRadius: 100,
+                      border: 'none',
+                    }}
                   >
-                    {state.card.authorName}
+                    @{state.card.authorName}
                   </button>
                 )}
-              </p>
+                {!state.card.authorIsAnonymous && (
+                  <button
+                    onClick={handleLike}
+                    disabled={likeBusy}
+                    aria-label={liked ? 'Quitar like' : 'Dar like'}
+                    style={{ background: 'none', border: 'none', padding: 6, fontSize: 22 }}
+                  >
+                    {liked ? '❤️' : '🤍'}
+                  </button>
+                )}
+              </div>
             )}
+            <span className="eyebrow">{state.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {state.level}</span>
+            <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{state.card.text}</p>
           </div>
 
           {state.choice === 'dare' && state.card.timerSeconds && (
