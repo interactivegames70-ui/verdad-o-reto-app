@@ -43,6 +43,9 @@ export default function PlayersScreen({ onGoCommunityCreate }) {
         group: c.group_mode,
         text: c.text,
         timerSeconds: c.timer_seconds ?? undefined,
+        authorId: c.author_id,
+        authorName: c.profiles?.is_anonymous === false ? c.profiles.username : 'Invitado',
+        authorIsAnonymous: c.profiles?.is_anonymous !== false,
       }))
       dispatch({ type: 'SET_COMMUNITY_CARDS', cards: mapped })
     }

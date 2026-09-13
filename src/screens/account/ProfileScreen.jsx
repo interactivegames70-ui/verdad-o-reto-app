@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth, AVATAR_EMOJIS, AVATAR_COLORS } from '../../state/authContext'
 import { fetchMyCards } from '../../lib/community'
+import { fetchFollowCounts } from '../../lib/social'
 
 const TYPE_LABEL = { truth: 'Verdad', dare: 'Reto' }
 const STATUS_INFO = {
@@ -9,7 +10,7 @@ const STATUS_INFO = {
   rejected: { label: 'No aprobada', color: 'var(--accent-pink)' },
 }
 
-export default function ProfileScreen({ onBack }) {
+export default function ProfileScreen({ onBack, onSearch }) {
   const { profile, loadingProfile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.username ?? '')
   const [emoji, setEmoji] = useState(profile?.avatar_emoji ?? AVATAR_EMOJIS[0])
@@ -18,6 +19,7 @@ export default function ProfileScreen({ onBack }) {
   const [saved, setSaved] = useState(false)
   const [myCards, setMyCards] = useState([])
   const [loadingCards, setLoadingCards] = useState(true)
+  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 })
 
   useEffect(() => {
     if (!profile?.id) return
@@ -28,6 +30,9 @@ export default function ProfileScreen({ onBack }) {
         setMyCards(data)
         setLoadingCards(false)
       }
+    })
+    fetchFollowCounts(profile.id).then((counts) => {
+      if (!cancelled) setFollowCounts(counts)
     })
     return () => {
       cancelled = true
@@ -87,7 +92,23 @@ export default function ProfileScreen({ onBack }) {
             Estás jugando como invitado. Tu progreso queda atado a este dispositivo.
           </p>
         )}
+        {!profile.is_anonymous && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 8 }}>
+            <span className="subtitle">
+              <strong style={{ color: 'var(--text-primary)' }}>{followCounts.followers}</strong> seguidores
+            </span>
+            <span className="subtitle">
+              <strong style={{ color: 'var(--text-primary)' }}>{followCounts.following}</strong> siguiendo
+            </span>
+          </div>
+        )}
       </div>
+
+      {!profile.is_anonymous && onSearch && (
+        <button className="btn btn-secondary btn-block" onClick={onSearch}>
+          🔎 Buscar jugadores
+        </button>
+      )}
 
       <div>
         <p className="subtitle" style={{ marginBottom: 10 }}>Nombre de usuario</p>

@@ -38,7 +38,7 @@ export default function OnlineChallengeScreen({ onGoAccount }) {
       onGoAccount?.()
       return
     }
-    if (likeBusy || !communityId) return
+    if (likeBusy || !communityId || gameState.card?.authorIsAnonymous) return
     setLikeBusy(true)
     const { liked: newLiked, error } = await toggleCardLike(communityId)
     if (!error) setLiked(!!newLiked)
@@ -182,7 +182,7 @@ export default function OnlineChallengeScreen({ onGoAccount }) {
               <span className="eyebrow">
                 {gameState.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {gameState.level}
               </span>
-              {communityId && (
+              {communityId && !gameState.card.authorIsAnonymous && (
                 <button
                   onClick={handleLike}
                   disabled={likeBusy}
@@ -194,6 +194,21 @@ export default function OnlineChallengeScreen({ onGoAccount }) {
               )}
             </div>
             <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{gameState.card.text}</p>
+            {communityId && gameState.card.authorName && (
+              <p className="subtitle" style={{ fontSize: 12, textAlign: 'right' }}>
+                Subido por{' '}
+                {gameState.card.authorIsAnonymous ? (
+                  gameState.card.authorName
+                ) : (
+                  <button
+                    onClick={() => onGoAccount?.(gameState.card.authorId)}
+                    style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-yellow)', fontWeight: 700 }}
+                  >
+                    {gameState.card.authorName}
+                  </button>
+                )}
+              </p>
+            )}
           </div>
 
           {gameState.choice === 'dare' && gameState.card.timerSeconds && (

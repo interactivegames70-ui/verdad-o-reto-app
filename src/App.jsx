@@ -15,6 +15,8 @@ import ResultsScreen from './screens/ResultsScreen'
 import OnlineGameScreen from './screens/OnlineGameScreen'
 import SignInScreen from './screens/account/SignInScreen'
 import ProfileScreen from './screens/account/ProfileScreen'
+import PublicProfileScreen from './screens/account/PublicProfileScreen'
+import UserSearchScreen from './screens/account/UserSearchScreen'
 import CommunityScreen from './screens/community/CommunityScreen'
 import CreateCommunityCardScreen from './screens/community/CreateCommunityCardScreen'
 import AdminModerationScreen from './screens/community/AdminModerationScreen'
@@ -46,17 +48,78 @@ function LocalRouter({ onGoOnline, onGoAccount, onGoCommunityCreate, onSecretAdm
   )
 }
 
-function AccountRouter({ onExit }) {
+function AccountRouter({ onExit, profileTarget, onClearTarget }) {
   const { user, isLoadingSession } = useAuth()
+  const [view, setView] = useState('own') // 'own' | 'search' | 'public' | 'signin'
+  const [viewedUserId, setViewedUserId] = useState(null)
+  const [returnView, setReturnView] = useState('own')
+
+  useEffect(() => {
+    if (profileTarget) {
+      setViewedUserId(profileTarget)
+      setView('public')
+    }
+  }, [profileTarget])
+
   if (isLoadingSession) return null
-  return user ? <ProfileScreen onBack={onExit} /> : <SignInScreen onBack={onExit} />
+
+  if (view === 'signin') {
+    return <SignInScreen onBack={() => setView(returnView)} />
+  }
+
+  if (view === 'search') {
+    return (
+      <UserSearchScreen
+        onBack={() => setView('own')}
+        onOpenProfile={(id) => {
+          setViewedUserId(id)
+          setView('public')
+        }}
+      />
+    )
+  }
+
+  if (view === 'public' && viewedUserId && viewedUserId !== user?.id) {
+    return (
+      <PublicProfileScreen
+        userId={viewedUserId}
+        currentUserId={user?.id}
+        onBack={() => {
+          onClearTarget?.()
+          setView('own')
+        }}
+        onRequireSignIn={() => {
+          setReturnView('public')
+          setView('signin')
+        }}
+      />
+    )
+  }
+
+  if (!user) return <SignInScreen onBack={onExit} />
+  return (
+    <ProfileScreen
+      onBack={() => {
+        onClearTarget?.()
+        onExit()
+      }}
+      onSearch={() => setView('search')}
+    />
+  )
 }
 
-function CommunityRouter({ onExit }) {
+function CommunityRouter({ onExit, onGoAccount }) {
   const [view, setView] = useState('browse') // 'browse' | 'create' | 'moderate'
   if (view === 'create') return <CreateCommunityCardScreen onBack={() => setView('browse')} />
   if (view === 'moderate') return <AdminModerationScreen onBack={() => setView('browse')} />
-  return <CommunityScreen onBack={onExit} onCreate={() => setView('create')} onModerate={() => setView('moderate')} />
+  return (
+    <CommunityScreen
+      onBack={onExit}
+      onCreate={() => setView('create')}
+      onModerate={() => setView('moderate')}
+      onGoAccount={onGoAccount}
+    />
+  )
 }
 
 // Microinteracción global: cualquier botón de la app da un click sutil + vibración corta.
@@ -76,14 +139,26 @@ function useGlobalTapFeedback() {
 
 function AppShell() {
   const [mode, setMode] = useState('local') // 'local' | 'online' | 'account' | 'community' | 'community-create' | 'admin-gate' | 'admin-menu' | 'admin-content' | 'admin-moderation'
+  const [profileTarget, setProfileTarget] = useState(null)
   useGlobalTapFeedback()
+
+  function goAccount(userId) {
+    setProfileTarget(userId || null)
+    setMode('account')
+  }
 
   return (
     <>
       <BackgroundBlobs />
-      {mode === 'online' && <OnlineGameScreen onExit={() => setMode('local')} onGoAccount={() => setMode('account')} />}
-      {mode === 'account' && <AccountRouter onExit={() => setMode('local')} />}
-      {mode === 'community' && <CommunityRouter onExit={() => setMode('local')} />}
+      {mode === 'online' && <OnlineGameScreen onExit={() => setMode('local')} onGoAccount={goAccount} />}
+      {mode === 'account' && (
+        <AccountRouter
+          onExit={() => setMode('local')}
+          profileTarget={profileTarget}
+          onClearTarget={() => setProfileTarget(null)}
+        />
+      )}
+      {mode === 'community' && <CommunityRouter onExit={() => setMode('local')} onGoAccount={goAccount} />}
       {mode === 'community-create' && <CreateCommunityCardScreen onBack={() => setMode('local')} />}
       {mode === 'admin-gate' && <AdminGateScreen onSuccess={() => setMode('admin-menu')} onCancel={() => setMode('local')} />}
       {mode === 'admin-menu' && (
@@ -98,7 +173,7 @@ function AppShell() {
       {mode === 'local' && (
         <LocalRouter
           onGoOnline={() => setMode('online')}
-          onGoAccount={() => setMode('account')}
+          onGoAccount={goAccount}
           onGoCommunityCreate={() => setMode('community-create')}
           onSecretAdminTap={() => setMode('admin-gate')}
         />

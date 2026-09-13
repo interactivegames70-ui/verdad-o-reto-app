@@ -1,7 +1,10 @@
 import { supabase } from './supabase'
 
 export async function fetchApprovedCards({ group, modality }) {
-  let query = supabase.from('community_cards').select('*').eq('status', 'approved')
+  let query = supabase
+    .from('community_cards')
+    .select('*, profiles(username, avatar_emoji, avatar_color, is_anonymous)')
+    .eq('status', 'approved')
   if (group) query = query.in('group_mode', ['ambas', group])
   if (modality) query = query.in('modality', ['ambas', modality])
   const { data, error } = await query.order('likes_count', { ascending: false })

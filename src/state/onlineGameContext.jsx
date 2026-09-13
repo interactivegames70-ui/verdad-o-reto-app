@@ -114,6 +114,9 @@ export function OnlineGameProvider({ children }) {
         group: c.group_mode,
         text: c.text,
         timerSeconds: c.timer_seconds ?? undefined,
+        authorId: c.author_id,
+        authorName: c.profiles?.is_anonymous === false ? c.profiles.username : 'Invitado',
+        authorIsAnonymous: c.profiles?.is_anonymous !== false,
       }))
       initialState = { ...initialState, communityEnabled: true, communityCards: mapped }
     }
@@ -282,6 +285,9 @@ export function OnlineGameProvider({ children }) {
       group: c.group_mode,
       text: c.text,
       timerSeconds: c.timer_seconds ?? undefined,
+      authorId: c.author_id,
+      authorName: c.profiles?.is_anonymous === false ? c.profiles.username : 'Invitado',
+      authorIsAnonymous: c.profiles?.is_anonymous !== false,
     }))
     await updateState({ communityEnabled: true, communityCards: mapped })
   }

@@ -4,7 +4,7 @@ import { fetchApprovedCards, fetchMyLikedCardIds, toggleCardLike } from '../../l
 
 const TYPE_LABEL = { truth: 'Verdad', dare: 'Reto' }
 
-export default function CommunityScreen({ onBack, onCreate, onModerate }) {
+export default function CommunityScreen({ onBack, onCreate, onModerate, onGoAccount }) {
   const { user, profile } = useAuth()
   const [cards, setCards] = useState([])
   const [likedIds, setLikedIds] = useState(new Set())
@@ -88,26 +88,45 @@ export default function CommunityScreen({ onBack, onCreate, onModerate }) {
             Todavía no hay cartas aprobadas de la comunidad.
           </p>
         )}
-        {visible.map((c) => (
-          <div key={c.id} className="card" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13.5 }}>
-              <strong>{TYPE_LABEL[c.type]} · N{c.level}</strong>
-              <br />
-              {c.text}
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="subtitle" style={{ fontSize: 12 }}>Usada {c.uses_count} veces</span>
-              <button
-                onClick={() => handleLike(c.id)}
-                disabled={!user}
-                style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 4, padding: 6 }}
-              >
-                <span style={{ fontSize: 16 }}>{likedIds.has(c.id) ? '❤️' : '🤍'}</span>
-                <span style={{ fontSize: 13, fontWeight: 700 }}>{c.likes_count}</span>
-              </button>
+        {visible.map((c) => {
+          const authorIsAnonymous = c.profiles?.is_anonymous !== false
+          const authorName = authorIsAnonymous ? 'Invitado' : c.profiles?.username ?? 'Jugador'
+          return (
+            <div key={c.id} className="card" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 13.5 }}>
+                <strong>{TYPE_LABEL[c.type]} · N{c.level}</strong>
+                <br />
+                {c.text}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="subtitle" style={{ fontSize: 12 }}>
+                  Por{' '}
+                  {authorIsAnonymous ? (
+                    authorName
+                  ) : (
+                    <button
+                      onClick={() => onGoAccount?.(c.author_id)}
+                      style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-yellow)', fontWeight: 700 }}
+                    >
+                      {authorName}
+                    </button>
+                  )}
+                  {' · '}Usada {c.uses_count} veces
+                </span>
+                {!authorIsAnonymous && (
+                  <button
+                    onClick={() => handleLike(c.id)}
+                    disabled={!user}
+                    style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 4, padding: 6 }}
+                  >
+                    <span style={{ fontSize: 16 }}>{likedIds.has(c.id) ? '❤️' : '🤍'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>{c.likes_count}</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <button className="btn btn-primary btn-block" onClick={onCreate}>
