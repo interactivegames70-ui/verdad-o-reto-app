@@ -59,8 +59,13 @@ create index if not exists follows_follower_idx on public.follows(follower_id);
 alter table public.follows enable row level security;
 
 -- Lectura pública: para poder mostrar contadores de seguidores/seguidos de cualquiera
+drop policy if exists "follows: lectura pública" on public.follows;
 create policy "follows: lectura pública" on public.follows for select using (true);
+
+drop policy if exists "follows: seguir" on public.follows;
 create policy "follows: seguir" on public.follows for insert with check (follower_id = auth.uid());
+
+drop policy if exists "follows: dejar de seguir" on public.follows;
 create policy "follows: dejar de seguir" on public.follows for delete using (follower_id = auth.uid());
 
 -- No se puede seguir a un invitado (no tiene perfil "real" ni sentido seguirlo)
