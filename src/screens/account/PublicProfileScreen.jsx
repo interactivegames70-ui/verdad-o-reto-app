@@ -16,25 +16,42 @@ export default function PublicProfileScreen({ userId, currentUserId, onBack, onR
   const [counts, setCounts] = useState({ followers: 0, following: 0 })
   const [following, setFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [followBusy, setFollowBusy] = useState(false)
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId) {
+      setLoading(false)
+      setLoadError(true)
+      return
+    }
     let cancelled = false
     setLoading(true)
+    setLoadError(false)
     Promise.all([
       fetchPublicProfile(userId),
       fetchPublicCardsFor(userId),
       fetchFollowCounts(userId),
       currentUserId ? isFollowing(currentUserId, userId) : Promise.resolve(false),
-    ]).then(([{ data: p }, { data: c }, counts, isFollow]) => {
-      if (cancelled) return
-      setProfile(p)
-      setCards(c)
-      setCounts(counts)
-      setFollowing(isFollow)
-      setLoading(false)
-    })
+    ])
+      .then(([{ data: p, error: profileError }, { data: c }, followCounts, isFollow]) => {
+        if (cancelled) return
+        if (profileError || !p) {
+          setLoadError(true)
+          return
+        }
+        setProfile(p)
+        setCards(c ?? [])
+        setCounts(followCounts ?? { followers: 0, following: 0 })
+        setFollowing(!!isFollow)
+      })
+      .catch((err) => {
+        console.error('Error cargando perfil público', err)
+        if (!cancelled) setLoadError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
     return () => {
       cancelled = true
     }
@@ -63,10 +80,23 @@ export default function PublicProfileScreen({ userId, currentUserId, onBack, onR
     setFollowBusy(false)
   }
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <div className="screen" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <p className="subtitle">Cargando perfil…</p>
+      </div>
+    )
+  }
+
+  if (loadError || !profile) {
+    return (
+      <div className="screen" style={{ alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+        <p className="subtitle" style={{ textAlign: 'center' }}>
+          No pudimos cargar este perfil. Puede que ya no exista o que falle la conexión.
+        </p>
+        <button className="btn btn-secondary" onClick={onBack}>
+          ‹ Volver
+        </button>
       </div>
     )
   }
