@@ -51,7 +51,7 @@ export default function HomeScreen({ onGoOnline, onGoAccount, onSecretAdminTap }
           {effectsOn ? '🔊' : '🔇'}
         </button>
         <button
-          onClick={onGoAccount}
+          onClick={() => onGoAccount?.()}
           aria-label="Mi cuenta"
           style={{
             width: 40,
