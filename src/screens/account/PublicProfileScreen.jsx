@@ -17,12 +17,14 @@ export default function PublicProfileScreen({ userId, currentUserId, onBack, onR
   const [following, setFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  const [debugInfo, setDebugInfo] = useState('')
   const [followBusy, setFollowBusy] = useState(false)
 
   useEffect(() => {
     if (!userId) {
       setLoading(false)
       setLoadError(true)
+      setDebugInfo('No se recibió un id de usuario para abrir el perfil.')
       return
     }
     let cancelled = false
@@ -37,6 +39,8 @@ export default function PublicProfileScreen({ userId, currentUserId, onBack, onR
       .then(([{ data: p, error: profileError }, { data: c }, followCounts, isFollow]) => {
         if (cancelled) return
         if (profileError || !p) {
+          console.error('No se pudo cargar el perfil público', { userId, profileError })
+          setDebugInfo(profileError?.message || `No existe un perfil con id ${userId}`)
           setLoadError(true)
           return
         }
@@ -47,7 +51,10 @@ export default function PublicProfileScreen({ userId, currentUserId, onBack, onR
       })
       .catch((err) => {
         console.error('Error cargando perfil público', err)
-        if (!cancelled) setLoadError(true)
+        if (!cancelled) {
+          setDebugInfo(err?.message || String(err))
+          setLoadError(true)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -94,6 +101,11 @@ export default function PublicProfileScreen({ userId, currentUserId, onBack, onR
         <p className="subtitle" style={{ textAlign: 'center' }}>
           No pudimos cargar este perfil. Puede que ya no exista o que falle la conexión.
         </p>
+        {debugInfo && (
+          <p className="subtitle" style={{ textAlign: 'center', fontSize: 11, opacity: 0.6 }}>
+            {debugInfo}
+          </p>
+        )}
         <button className="btn btn-secondary" onClick={onBack}>
           ‹ Volver
         </button>
