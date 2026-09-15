@@ -6,6 +6,7 @@ const TYPE_LABEL = { truth: 'Verdad', dare: 'Reto' }
 export default function AdminModerationScreen({ onBack }) {
   const [pending, setPending] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   async function load() {
     setLoading(true)
@@ -19,8 +20,16 @@ export default function AdminModerationScreen({ onBack }) {
   }, [])
 
   async function decide(cardId, status) {
+    setError('')
+    const { error } = await moderateCard(cardId, status)
+    if (error) {
+      console.error('Error al moderar la carta', error)
+      setError(
+        'No se pudo guardar el cambio. Seguramente tu usuario no está marcado como admin en la base de datos (revisá supabase-schema-community.sql).'
+      )
+      return
+    }
     setPending((prev) => prev.filter((c) => c.id !== cardId))
-    await moderateCard(cardId, status)
   }
 
   return (
@@ -40,6 +49,11 @@ export default function AdminModerationScreen({ onBack }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, overflowY: 'auto' }}>
         {loading && <p className="subtitle" style={{ textAlign: 'center' }}>Cargando…</p>}
+        {error && (
+          <p className="subtitle" style={{ textAlign: 'center', color: 'var(--accent-pink)' }}>
+            {error}
+          </p>
+        )}
         {!loading && pending.length === 0 && (
           <p className="subtitle" style={{ textAlign: 'center', marginTop: 12 }}>
             No hay nada pendiente de revisión. 🎉
