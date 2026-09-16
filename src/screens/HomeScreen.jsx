@@ -83,7 +83,11 @@ export default function HomeScreen({ onGoOnline, onGoAccount, onSecretAdminTap }
             marginBottom: 4,
           }}
         >
-          <img src="/logo-512.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img
+            src={`${import.meta.env.BASE_URL}logo-512.png`}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
         </div>
         <h1 className="title" style={{ fontSize: 46, letterSpacing: '-0.01em' }}>
           Verdad <span style={{ color: 'var(--accent-yellow)' }}>o</span> Reto
