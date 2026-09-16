@@ -24,7 +24,7 @@ export default function ContentChoiceScreen() {
           style={{ textAlign: 'left' }}
           onClick={() => dispatch({ type: 'GO_SETUP', communityMode: false })}
         >
-          <span className="icon">🎲</span>
+          <img src="/favicon-192.png" alt="" style={{ width: 26, height: 26, borderRadius: 7, display: 'block' }} />
           <span className="label">Preguntas y retos de la aplicación</span>
           <span className="desc">Modo clásico</span>
         </button>

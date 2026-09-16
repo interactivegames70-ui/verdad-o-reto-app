@@ -78,16 +78,12 @@ export default function HomeScreen({ onGoOnline, onGoAccount, onSecretAdminTap }
             width: 96,
             height: 96,
             borderRadius: 28,
-            background: 'linear-gradient(155deg, var(--accent-pink), var(--accent-pink-dim))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 46,
+            overflow: 'hidden',
             boxShadow: '0 16px 36px -8px rgba(255,45,120,0.6)',
             marginBottom: 4,
           }}
         >
-          🎲
+          <img src="/logo-512.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
         <h1 className="title" style={{ fontSize: 46, letterSpacing: '-0.01em' }}>
           Verdad <span style={{ color: 'var(--accent-yellow)' }}>o</span> Reto

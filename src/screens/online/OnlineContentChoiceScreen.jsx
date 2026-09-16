@@ -25,7 +25,7 @@ export default function OnlineContentChoiceScreen() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <button className="option-card" style={{ textAlign: 'left' }} onClick={() => choose(false)}>
-          <span className="icon">🎲</span>
+          <img src="/favicon-192.png" alt="" style={{ width: 26, height: 26, borderRadius: 7, display: 'block' }} />
           <span className="label">Preguntas y retos de la aplicación</span>
           <span className="desc">Modo clásico</span>
         </button>
