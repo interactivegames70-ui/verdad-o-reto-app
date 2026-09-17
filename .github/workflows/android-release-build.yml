@@ -37,8 +37,8 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Preparar el SDK de Android
-        uses: android-actions/setup-android@v3
+      - name: Aceptar licencias del SDK de Android preinstalado
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Restaurar el archivo de firma (keystore)
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
