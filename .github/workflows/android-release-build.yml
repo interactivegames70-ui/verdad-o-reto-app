@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Compilar la aplicación web
-        run: npm run build
+        run: npm run build -- --mode capacitor
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
