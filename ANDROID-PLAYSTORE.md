@@ -1,5 +1,41 @@
 # Verdad o Reto → Android / Play Store
 
+## Camino recomendado: generar el instalable desde GitHub (sin Android Studio)
+
+El proyecto incluye dos workflows de GitHub Actions que compilan la app Android en los
+servidores de GitHub (con acceso completo a internet para descargar el SDK de Android),
+sin necesidad de instalar Android Studio en tu computadora:
+
+- **`Android - Build de prueba (APK)`**: genera un `.apk` de prueba, instalable
+  directamente en un celular Android (activando "instalar apps de orígenes
+  desconocidos"). No requiere ninguna clave de firma. Úsalo para probar la app antes
+  de generar la versión final.
+- **`Android - Build para Play Store (AAB firmado)`**: genera el paquete `.aab`
+  firmado, listo para subir a Play Console. Requiere haber configurado antes los
+  secretos `ANDROID_KEYSTORE_BASE64` y `ANDROID_KEYSTORE_PASSWORD` (ver más abajo).
+
+### Cómo ejecutar un build
+1. Ir al repositorio en GitHub → pestaña **Actions**.
+2. Elegir el workflow deseado en la lista de la izquierda.
+3. Botón **Run workflow** → **Run workflow** (rama `main`).
+4. Esperar a que termine (unos minutos) y entrar a la ejecución finalizada.
+5. Descargar el resultado desde la sección **Artifacts**, al final de la página.
+
+### Configurar los secretos de firma (una sola vez)
+En el repositorio: **Settings → Secrets and variables → Actions → New repository secret**.
+- `ANDROID_KEYSTORE_BASE64`: el archivo de firma (keystore) codificado en base64.
+- `ANDROID_KEYSTORE_PASSWORD`: la contraseña del keystore.
+
+El keystore y su contraseña son el archivo y la clave que permiten publicar
+actualizaciones de la app en Play Store. **Si se pierden, no se podrá volver a
+actualizar la app publicada** — habría que publicarla de nuevo como una app distinta.
+Por eso deben guardarse también fuera de GitHub, en un lugar seguro y respaldado
+(por ejemplo, un gestor de contraseñas), además de configurarse como secretos.
+
+---
+
+## Camino alternativo: generar el instalable con Android Studio
+
 Este proyecto ya viene con Capacitor instalado y configurado. Lo que falta lo tienes
 que hacer tú porque requiere Android Studio (no disponible en este entorno).
 
