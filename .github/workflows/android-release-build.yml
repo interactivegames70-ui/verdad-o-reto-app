@@ -1,0 +1,67 @@
+name: Android - Build para Play Store (AAB firmado)
+
+# Se ejecuta manualmente desde la pestaña "Actions" de GitHub.
+# Requiere haber configurado antes, en Settings > Secrets and variables > Actions,
+# los secretos: ANDROID_KEYSTORE_BASE64 y ANDROID_KEYSTORE_PASSWORD.
+on:
+  workflow_dispatch:
+
+jobs:
+  build-release-aab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Compilar la aplicación web
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Sincronizar con el proyecto de Android
+        run: npx cap sync android
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Preparar el SDK de Android
+        uses: android-actions/setup-android@v3
+
+      - name: Restaurar el archivo de firma (keystore)
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+
+      - name: Dar permisos de ejecución a Gradle
+        run: chmod +x android/gradlew
+
+      - name: Compilar y firmar el paquete (.aab)
+        run: |
+          cd android
+          ./gradlew bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file=app/release.keystore \
+            -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=verdadoreto \
+            -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+
+      - name: Borrar el archivo de firma temporal
+        if: always()
+        run: rm -f android/app/release.keystore
+
+      - name: Publicar el paquete (.aab) como resultado del build
+        uses: actions/upload-artifact@v4
+        with:
+          name: verdad-o-reto-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
