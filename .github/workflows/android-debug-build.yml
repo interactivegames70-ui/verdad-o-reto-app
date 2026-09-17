@@ -37,8 +37,8 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Preparar el SDK de Android
-        uses: android-actions/setup-android@v3
+      - name: Aceptar licencias del SDK de Android preinstalado
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Dar permisos de ejecución a Gradle
         run: chmod +x android/gradlew
