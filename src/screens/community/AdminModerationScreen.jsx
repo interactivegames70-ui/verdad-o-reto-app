@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react'
-import { fetchPendingCards, moderateCard } from '../../lib/community'
+import { fetchPendingCards, fetchReportedCards, moderateCard, dismissReports } from '../../lib/community'
 
 const TYPE_LABEL = { truth: 'Verdad', dare: 'Reto' }
 
 export default function AdminModerationScreen({ onBack }) {
+  const [tab, setTab] = useState('pending') // 'pending' | 'reported'
   const [pending, setPending] = useState([])
+  const [reported, setReported] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   async function load() {
     setLoading(true)
-    const { data } = await fetchPendingCards()
-    setPending(data)
+    setError('')
+    const [{ data: pendingData }, { data: reportedData, error: reportedError }] = await Promise.all([
+      fetchPendingCards(),
+      fetchReportedCards(),
+    ])
+    setPending(pendingData)
+    setReported(reportedData)
+    if (reportedError) {
+      console.error('Error al cargar reportes', reportedError)
+      setError(
+        'No se pudieron cargar los reportes. Puede que falte correr supabase-schema-reports.sql en Supabase.'
+      )
+    }
     setLoading(false)
   }
 
@@ -30,7 +43,21 @@ export default function AdminModerationScreen({ onBack }) {
       return
     }
     setPending((prev) => prev.filter((c) => c.id !== cardId))
+    setReported((prev) => prev.filter((c) => c.id !== cardId))
   }
+
+  async function dismiss(cardId) {
+    setError('')
+    const { error } = await dismissReports(cardId)
+    if (error) {
+      console.error('Error al descartar los reportes', error)
+      setError('No se pudieron descartar los reportes.')
+      return
+    }
+    setReported((prev) => prev.filter((c) => c.id !== cardId))
+  }
+
+  const list = tab === 'pending' ? pending : reported
 
   return (
     <div className="screen">
@@ -43,8 +70,25 @@ export default function AdminModerationScreen({ onBack }) {
       <div>
         <p className="eyebrow">Panel de moderación</p>
         <h2 className="title" style={{ fontSize: 24 }}>
-          Cartas pendientes de revisión
+          {tab === 'pending' ? 'Cartas pendientes de revisión' : 'Cartas reportadas'}
         </h2>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          className={tab === 'pending' ? 'btn btn-primary' : 'btn btn-secondary'}
+          style={{ flex: 1 }}
+          onClick={() => setTab('pending')}
+        >
+          Pendientes{pending.length > 0 ? ` (${pending.length})` : ''}
+        </button>
+        <button
+          className={tab === 'reported' ? 'btn btn-primary' : 'btn btn-secondary'}
+          style={{ flex: 1 }}
+          onClick={() => setTab('reported')}
+        >
+          Reportadas{reported.length > 0 ? ` (${reported.length})` : ''}
+        </button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, overflowY: 'auto' }}>
@@ -54,25 +98,38 @@ export default function AdminModerationScreen({ onBack }) {
             {error}
           </p>
         )}
-        {!loading && pending.length === 0 && (
+        {!loading && list.length === 0 && (
           <p className="subtitle" style={{ textAlign: 'center', marginTop: 12 }}>
-            No hay nada pendiente de revisión. 🎉
+            {tab === 'pending' ? 'No hay nada pendiente de revisión. 🎉' : 'No hay cartas reportadas. 🎉'}
           </p>
         )}
-        {pending.map((c) => (
+        {list.map((c) => (
           <div key={c.id} className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ fontSize: 13.5 }}>
               <strong>{TYPE_LABEL[c.type]} · N{c.level}</strong>
               <br />
               {c.text}
             </span>
+            {tab === 'reported' && (
+              <span className="subtitle" style={{ fontSize: 12 }}>
+                🚩 Reportada {c.reportCount} {c.reportCount === 1 ? 'vez' : 'veces'}
+                {c.reasons?.length > 0 ? ` — motivo: "${c.reasons[0]}"` : ''}
+              </span>
+            )}
             <div style={{ display: 'flex', gap: 8 }}>
+              {tab === 'reported' && (
+                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => dismiss(c.id)}>
+                  Descartar reportes
+                </button>
+              )}
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => decide(c.id, 'rejected')}>
                 Rechazar
               </button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => decide(c.id, 'approved')}>
-                Aprobar
-              </button>
+              {tab === 'pending' && (
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => decide(c.id, 'approved')}>
+                  Aprobar
+                </button>
+              )}
             </div>
           </div>
         ))}

@@ -6,7 +6,7 @@ import { TESTING_UNLOCK_PREMIUM } from '../config'
 import ExitGameButton from '../components/ExitGameButton'
 import { playReveal, playCountdownTick, playBuzzer, playSuccess, playFail } from '../lib/sound'
 import { vibrate } from '../lib/haptics'
-import { toggleCardLike, hasLikedCard } from '../lib/community'
+import { toggleCardLike, hasLikedCard, reportCard } from '../lib/community'
 
 export default function ChallengeScreen({ onGoAccount }) {
   const { state, dispatch } = useGame()
@@ -18,7 +18,12 @@ export default function ChallengeScreen({ onGoAccount }) {
   const [timerRunning, setTimerRunning] = useState(false)
   const [liked, setLiked] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
+  const [reported, setReported] = useState(false)
   const communityId = state.card?.communityId
+
+  useEffect(() => {
+    setReported(false)
+  }, [communityId])
 
   useEffect(() => {
     setLiked(false)
@@ -42,6 +47,16 @@ export default function ChallengeScreen({ onGoAccount }) {
     const { liked: newLiked, error } = await toggleCardLike(communityId)
     if (!error) setLiked(!!newLiked)
     setLikeBusy(false)
+  }
+
+  async function handleReport() {
+    if (!user) {
+      onGoAccount?.()
+      return
+    }
+    if (reported || !communityId) return
+    setReported(true)
+    await reportCard(communityId, user.id)
   }
 
   useEffect(() => {
@@ -211,6 +226,22 @@ export default function ChallengeScreen({ onGoAccount }) {
             )}
             <span className="eyebrow">{state.choice === 'truth' ? 'Verdad' : 'Reto'} · Nivel {state.level}</span>
             <p style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}>{state.card.text}</p>
+            {communityId && (
+              <button
+                onClick={handleReport}
+                disabled={reported}
+                style={{
+                  alignSelf: 'flex-end',
+                  background: 'none',
+                  border: 'none',
+                  padding: 4,
+                  fontSize: 12,
+                  color: reported ? 'var(--text-muted)' : 'var(--accent-pink)',
+                }}
+              >
+                {reported ? 'Reportada ✓' : '🚩 Reportar'}
+              </button>
+            )}
           </div>
 
           {state.choice === 'dare' && state.card.timerSeconds && (

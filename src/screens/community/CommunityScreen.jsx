@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../state/authContext'
-import { fetchApprovedCards, fetchMyLikedCardIds, toggleCardLike } from '../../lib/community'
+import { fetchApprovedCards, fetchMyLikedCardIds, toggleCardLike, reportCard } from '../../lib/community'
 
 const TYPE_LABEL = { truth: 'Verdad', dare: 'Reto' }
 
@@ -8,6 +8,7 @@ export default function CommunityScreen({ onBack, onCreate, onModerate, onGoAcco
   const { user, profile } = useAuth()
   const [cards, setCards] = useState([])
   const [likedIds, setLikedIds] = useState(new Set())
+  const [reportedIds, setReportedIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [typeFilter, setTypeFilter] = useState('all') // all | truth | dare
 
@@ -40,6 +41,16 @@ export default function CommunityScreen({ onBack, onCreate, onModerate, onGoAcco
       prev.map((c) => (c.id === cardId ? { ...c, likes_count: c.likes_count + (wasLiked ? -1 : 1) } : c))
     )
     await toggleCardLike(cardId)
+  }
+
+  async function handleReport(cardId) {
+    if (!user) {
+      onGoAccount?.()
+      return
+    }
+    if (reportedIds.has(cardId)) return
+    setReportedIds((prev) => new Set(prev).add(cardId))
+    await reportCard(cardId, user.id)
   }
 
   const visible = cards.filter((c) => typeFilter === 'all' || c.type === typeFilter)
@@ -139,7 +150,22 @@ export default function CommunityScreen({ onBack, onCreate, onModerate, onGoAcco
                 <br />
                 {c.text}
               </span>
-              <span className="subtitle" style={{ fontSize: 11.5 }}>Usada {c.uses_count} veces</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="subtitle" style={{ fontSize: 11.5 }}>Usada {c.uses_count} veces</span>
+                <button
+                  onClick={() => handleReport(c.id)}
+                  disabled={reportedIds.has(c.id)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 4,
+                    fontSize: 11.5,
+                    color: reportedIds.has(c.id) ? 'var(--text-muted)' : 'var(--accent-pink)',
+                  }}
+                >
+                  {reportedIds.has(c.id) ? 'Reportada ✓' : '🚩 Reportar'}
+                </button>
+              </div>
             </div>
           )
         })}

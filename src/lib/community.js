@@ -73,3 +73,40 @@ export async function incrementCardUses(cardId) {
 export async function moderateCard(cardId, status) {
   return supabase.from('community_cards').update({ status }).eq('id', cardId).select().single()
 }
+
+export async function reportCard(cardId, reporterId, reason) {
+  const { error } = await supabase
+    .from('community_card_reports')
+    .insert({ card_id: cardId, reporter_id: reporterId, reason: reason || null })
+  // Un mismo usuario solo puede reportar una vez la misma carta (clave primaria
+  // card_id + reporter_id): si ya la había reportado, no lo tratamos como error.
+  if (error && error.code === '23505') return { error: null, alreadyReported: true }
+  return { error }
+}
+
+// Trae las cartas aprobadas que tienen al menos un reporte, agrupadas con su
+// cantidad de reportes, para el panel de moderación.
+export async function fetchReportedCards() {
+  const { data, error } = await supabase
+    .from('community_card_reports')
+    .select('card_id, reason, created_at, community_cards(*, profiles(username, avatar_emoji, is_anonymous))')
+    .order('created_at', { ascending: false })
+  if (error) return { data: [], error }
+
+  const byCard = new Map()
+  for (const row of data ?? []) {
+    const card = row.community_cards
+    if (!card) continue
+    if (!byCard.has(card.id)) {
+      byCard.set(card.id, { ...card, reportCount: 0, reasons: [] })
+    }
+    const entry = byCard.get(card.id)
+    entry.reportCount += 1
+    if (row.reason) entry.reasons.push(row.reason)
+  }
+  return { data: Array.from(byCard.values()), error: null }
+}
+
+export async function dismissReports(cardId) {
+  return supabase.from('community_card_reports').delete().eq('card_id', cardId)
+}
